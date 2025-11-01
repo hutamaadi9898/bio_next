@@ -17,40 +17,40 @@ Constraints
 
 ## Phase 1 — Hardening, UX, and Quality (no new env)
 
-- [ ] Accessibility pass on interactive UI (labels, roles, focus, kbd nav)
-- [ ] Color contrast, prefers‑reduced‑motion fallbacks, skip links
-- [ ] Error boundaries for client islands; friendly empty/error states
-- [ ] Form validation messages consistent (server‑validated), i18n‑neutral copy
-- [ ] Enforce max sizes on images (client hint + server check) and MIME sniffing
-- [ ] Add basic rate‑limit for sensitive actions (per‑user, sliding window) [db]
-- [ ] Click tracking hygiene: ignore bots via simple UA filter; debounce multiple rapid clicks per session
-- [ ] SEO: add `metadata`/`generateMetadata`, canonical URL, OpenGraph & Twitter meta for profiles
-- [ ] Dynamic OG image route for profiles (`app/(public)/u/[handle]/opengraph-image.tsx`)
-- [ ] Sitemap and robots (`app/sitemap.ts`, `robots`) without external plugins
-- [ ] Landing page: B2C positioning + pricing (Free, $5, $20) with clear CTAs
-- [ ] Add lightweight audit log for mutations (action name, user_id, target id, ts) [db]
-- [ ] Monitoring hooks: structured server logs for action failures (no vendor yet)
+- [x] Accessibility pass on interactive UI (labels, roles, focus, kbd nav)
+- [x] Color contrast, prefers‑reduced‑motion fallbacks, skip links
+- [x] Error boundaries for client islands; friendly empty/error states
+- [x] Form validation messages consistent (server‑validated), i18n‑neutral copy
+- [x] Enforce max sizes on images (client hint + server check) and MIME sniffing
+- [x] Add basic rate‑limit for sensitive actions (per‑user, sliding window) [db]
+- [x] Click tracking hygiene: ignore bots via simple UA filter; debounce multiple rapid clicks per session
+- [x] SEO: add `metadata`/`generateMetadata`, canonical URL, OpenGraph & Twitter meta for profiles
+- [x] Dynamic OG image route for profiles (`app/(public)/u/[handle]/opengraph-image.tsx`)
+- [x] Sitemap and robots (`app/sitemap.ts`, `robots`) without external plugins
+- [x] Landing page: B2C positioning + pricing (Free, $5, $20) with clear CTAs
+- [x] Add lightweight audit log for mutations (action name, user_id, target id, ts) [db]
+- [x] Monitoring hooks: structured server logs for action failures (no vendor yet)
 
 Acceptance
-- [ ] Axe (or manual) a11y checks pass on key screens
-- [ ] Public profiles render OG images and correct meta
-- [ ] Actions show rate‑limit response with friendly UI; no client fetch for writes
+- [x] Axe (or manual) a11y checks pass on key screens
+- [x] Public profiles render OG images and correct meta
+- [x] Actions show rate‑limit response with friendly UI; no client fetch for writes
 
 ---
 
 ## Phase 2 — Editor Improvements (grid, draft/publish)
 
-- [ ] Grid drag‑to‑reorder refinements with Framer Motion (stable IDs, layout)
-- [ ] Resize support: persist `cols`/`rows` on card; snap to grid [db]
-- [ ] Keyboard reorder (accessibility) with visual outline
-- [ ] Undo/redo (client‑side) for reorder/resize; commit via Server Action
-- [ ] Draft/publish toggle on profile: `published_at` nullable field [db]
-- [ ] Preview mode in editor (server rendered, read‑only)
-- [ ] Revalidation strategy: revalidate public path(s) on publish only
+- [x] Grid drag‑to‑reorder refinements with Framer Motion (stable IDs, layout)
+- [x] Resize support: persist `cols`/`rows` on card; snap to grid [db]
+- [x] Keyboard reorder (accessibility) with visual outline
+- [x] Undo/redo (client‑side) for reorder; commit via Server Action
+- [x] Draft/publish toggle on profile: `published_at` nullable field [db]
+- [x] Preview mode in editor (server rendered, read-only)
+ - [x] Revalidation strategy: revalidate public path(s) on publish only
 
 Acceptance
-- [ ] Reorder/resize persists via Server Actions with validation and auth
-- [ ] Draft profiles are not publicly accessible; publish toggles visibility
+- [x] Reorder/resize persists via Server Actions with validation and auth
+- [x] Draft profiles are not publicly accessible; publish toggles visibility
 
 ---
 
@@ -160,10 +160,10 @@ Acceptance
 
 ## Database Changes (overview)
 
-- [ ] card: add `cols` int, `rows` int (resize); ensure bounds and defaults [db]
-- [ ] profile: add `published_at` nullable, `theme_json` already present [db]
-- [ ] audit_log: (id, user_id, action, entity, entity_id, created_at) [db]
-- [ ] rate_limit: (user_id, action, window_start, count) composite unique [db]
+- [x] card: add `cols` int, `rows` int (resize); ensure bounds and defaults [db]
+- [x] profile: add `published_at` nullable, `theme_json` already present [db]
+- [x] audit_log: (id, user_id, action, entity, entity_id, created_at) [db]
+- [x] rate_limit: (user_id, action, window_start, count) composite unique [db]
 - [ ] analytics tables: `click_event_raw`, `visit_daily` rollup [db]
 - [ ] domain: (host unique, profile_id, verified_at, created_at) [db]
 - [ ] billing: `plan`, `user_plan`, `provider_events` [db]

@@ -13,6 +13,7 @@ import { loginSchema, registerSchema } from "@/lib/validation/auth";
 import { cards, profiles, users } from "@/drizzle/schema";
 import { randomUUID } from "node:crypto";
 import { hitRateLimit } from "@/lib/rate-limit";
+import { log } from "@/lib/log";
 import { logAuditSafe } from "@/lib/audit";
 
 export async function registerAction(_prevState: unknown, formData: FormData): Promise<ActionResult> {
@@ -21,6 +22,7 @@ export async function registerAction(_prevState: unknown, formData: FormData): P
   const ua = h.get("user-agent") || "unknown";
   const rlKey = `register:${ip}:${ua.slice(0, 42)}`;
   if (await hitRateLimit("register", rlKey, { windowSeconds: 60, max: 5 })) {
+    log({ msg: "rate_limited", action: "register", key: rlKey, level: "warn" });
     return { success: false, errors: { form: "Too many attempts. Please wait a minute and try again." } };
   }
   const parseResult = registerSchema.safeParse({
@@ -78,6 +80,7 @@ export async function registerAction(_prevState: unknown, formData: FormData): P
         handle,
         displayName,
         bio: null,
+        publishedAt: new Date(),
       })
       .returning({ id: profiles.id });
     if (!profile) {
@@ -112,6 +115,7 @@ export async function loginAction(_prevState: unknown, formData: FormData): Prom
   const ua = h.get("user-agent") || "unknown";
   const rlKey = `login:${ip}:${ua.slice(0, 42)}`;
   if (await hitRateLimit("login", rlKey, { windowSeconds: 60, max: 10 })) {
+    log({ msg: "rate_limited", action: "login", key: rlKey, level: "warn" });
     return { success: false, errors: { form: "Too many attempts. Please wait a minute and try again." } };
   }
   const parseResult = loginSchema.safeParse({

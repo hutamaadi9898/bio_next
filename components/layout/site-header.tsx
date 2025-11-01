@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +35,6 @@ export function SiteHeader({ className, currentUser }: SiteHeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           {currentUser ? (
             <div className="flex items-center gap-2">
               {currentUser.handle ? (

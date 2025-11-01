@@ -18,6 +18,7 @@ import {
 } from "@/lib/validation/cards";
 import { uploadImageToR2 } from "@/lib/storage/r2";
 import { logAuditSafe } from "@/lib/audit";
+import { log } from "@/lib/log";
 
 function normaliseColor(color?: string | null) {
   if (!color) return null;
@@ -28,9 +29,10 @@ function ensureUrlForType(type: string) {
   return type === "link" || type === "social" || type === "email";
 }
 
-function revalidateDashboard(handle: string) {
+function revalidateDashboard(_handle: string) {
+  // Only revalidate the dashboard during editing. Public profile paths are
+  // revalidated on publish/unpublish to avoid unnecessary cache churn.
   revalidatePath("/dashboard");
-  revalidatePath(`/u/${handle}`);
 }
 
 export async function createCardAction(_prev: unknown, formData: FormData): Promise<ActionResult> {
@@ -264,7 +266,27 @@ export async function uploadAvatarAction(_prev: unknown, formData: FormData): Pr
     revalidateDashboard(profile.handle);
     return { success: true, data: { url: asset.url } };
   } catch (error) {
-    console.error("Avatar upload failed", error);
+    log({ msg: "avatar_upload_failed", level: "error", error: error instanceof Error ? error.message : String(error) });
     return { success: false, errors: { avatar: error instanceof Error ? error.message : "Upload failed" } };
   }
+}
+
+export async function publishProfileAction() {
+  const { profile } = await requireProfile();
+  await db
+    .update(profiles)
+    .set({ publishedAt: new Date(), updatedAt: new Date() })
+    .where(eq(profiles.id, profile.id));
+  revalidatePath(`/u/${profile.handle}`);
+  await logAuditSafe({ userId: profile.userId, action: "profile.publish", entity: "profile", entityId: profile.id });
+}
+
+export async function unpublishProfileAction() {
+  const { profile } = await requireProfile();
+  await db
+    .update(profiles)
+    .set({ publishedAt: null, updatedAt: new Date() })
+    .where(eq(profiles.id, profile.id));
+  revalidatePath(`/u/${profile.handle}`);
+  await logAuditSafe({ userId: profile.userId, action: "profile.unpublish", entity: "profile", entityId: profile.id });
 }

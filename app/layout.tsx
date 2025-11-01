@@ -50,7 +50,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#0a0a0a" }, { color: "#ffffff" }],
+  // Dark-only UI
+  themeColor: [{ color: "#0a0a0a" }],
 };
 
 export default async function RootLayout({
@@ -60,7 +61,7 @@ export default async function RootLayout({
 }) {
   const currentUser = await getCurrentUser();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans text-foreground">
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">

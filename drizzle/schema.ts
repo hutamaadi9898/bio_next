@@ -77,6 +77,7 @@ export const profiles = pgTable(
     createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
     isPublic: boolean("is_public").default(true).notNull(),
+    publishedAt: timestamp("published_at", { withTimezone: false }),
   },
 );
 

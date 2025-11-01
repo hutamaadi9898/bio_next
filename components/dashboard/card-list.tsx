@@ -15,6 +15,9 @@ type CardListProps = {
 
 export function CardList({ cards }: CardListProps) {
   const [isPending, startTransition] = React.useTransition();
+  const undoStack = React.useRef<{ cardId: string; direction: "up" | "down" }[]>([]);
+  const redoStack = React.useRef<{ cardId: string; direction: "up" | "down" }[]>([]);
+  const performingRef = React.useRef<"none" | "undo" | "redo">("none");
 
   const handleDelete = (cardId: string) => {
     startTransition(async () => {
@@ -31,8 +34,42 @@ export function CardList({ cards }: CardListProps) {
     startTransition(async () => {
       try {
         await reorderCardAction(cardId, direction);
+        if (performingRef.current === "none") {
+          undoStack.current.push({ cardId, direction });
+          // clear redo on new user action
+          redoStack.current = [];
+        }
       } catch (_error) {
         toast.error("Unable to reorder card");
+      }
+    });
+  };
+
+  const handleUndo = () => {
+    const op = undoStack.current.pop();
+    if (!op) return;
+    performingRef.current = "undo";
+    const opposite = op.direction === "up" ? "down" : "up";
+    startTransition(async () => {
+      try {
+        await reorderCardAction(op.cardId, opposite);
+        redoStack.current.push(op);
+      } finally {
+        performingRef.current = "none";
+      }
+    });
+  };
+
+  const handleRedo = () => {
+    const op = redoStack.current.pop();
+    if (!op) return;
+    performingRef.current = "redo";
+    startTransition(async () => {
+      try {
+        await reorderCardAction(op.cardId, op.direction);
+        undoStack.current.push(op);
+      } finally {
+        performingRef.current = "none";
       }
     });
   };
@@ -49,7 +86,15 @@ export function CardList({ cards }: CardListProps) {
           }
         />
       </div>
-      <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={handleUndo} aria-label="Undo last reorder" disabled={undoStack.current.length === 0}>
+          Undo
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleRedo} aria-label="Redo reorder" disabled={redoStack.current.length === 0}>
+          Redo
+        </Button>
+      </div>
+      <div className="space-y-3" aria-live="polite">
         {cards.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No cards yet. Add your first link, email capture, or highlight using the button above.
@@ -80,6 +125,7 @@ export function CardList({ cards }: CardListProps) {
                 size="icon"
                 onClick={() => handleReorder(card.id, "up")}
                 disabled={isPending || index === 0}
+                aria-label={`Move ${card.title} up`}
               >
                 ↑
               </Button>
@@ -88,6 +134,7 @@ export function CardList({ cards }: CardListProps) {
                 size="icon"
                 onClick={() => handleReorder(card.id, "down")}
                 disabled={isPending || index === cards.length - 1}
+                aria-label={`Move ${card.title} down`}
               >
                 ↓
               </Button>

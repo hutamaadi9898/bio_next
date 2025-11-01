@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 export default async function PublicProfilePage({ params }: PageParams) {
   const { handle } = await params;
   const profile = await getProfile(handle);
-  if (!profile || !profile.isPublic) {
+  if (!profile || !profile.isPublic || !profile.publishedAt) {
     notFound();
   }
 
