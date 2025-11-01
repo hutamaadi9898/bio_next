@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { BentoGrid, type BentoCardData } from "@/components/bento/bento-grid";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PublicCardLink } from "@/components/public/card-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,20 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
       title: profile.displayName,
       description: profile.bio ?? undefined,
       url: `/u/${profile.handle}`,
+      images: [
+        {
+          url: `/u/${profile.handle}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${profile.displayName} — Biogrid`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: profile.displayName,
+      description: profile.bio ?? undefined,
+      images: [`/u/${profile.handle}/opengraph-image`],
     },
   };
 }
@@ -84,7 +99,9 @@ export default async function PublicProfilePage({ params }: PageParams) {
         className="rounded-3xl border bg-card p-6 shadow-sm"
         style={{ boxShadow: `0 20px 45px -15px ${accent}55` }}
       >
-        <BentoGrid items={bentoItems} className="min-h-[420px]" />
+        <ErrorBoundary>
+          <BentoGrid items={bentoItems} className="min-h-[420px]" />
+        </ErrorBoundary>
       </div>
     </div>
   );

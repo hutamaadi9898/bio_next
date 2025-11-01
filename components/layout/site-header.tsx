@@ -23,7 +23,7 @@ export function SiteHeader({ className, currentUser }: SiteHeaderProps) {
           <span>Biogrid</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+        <nav aria-label="Primary" role="navigation" className="hidden items-center gap-6 text-sm font-medium md:flex">
           <Link className="text-muted-foreground transition hover:text-foreground" href="#features">
             Features
           </Link>
@@ -44,13 +44,13 @@ export function SiteHeader({ className, currentUser }: SiteHeaderProps) {
                   <Link href={`/u/${currentUser.handle}`}>View profile</Link>
                 </Button>
               ) : null}
-              <Button asChild variant="default">
-                <Link href="/dashboard">Open dashboard</Link>
-              </Button>
-            </div>
+            <Button asChild variant="default">
+              <Link href="/dashboard" aria-label="Open dashboard">Open dashboard</Link>
+            </Button>
+          </div>
           ) : (
             <Button asChild variant="secondary">
-              <Link href="/login">Sign in</Link>
+              <Link href="/login" aria-label="Sign in">Sign in</Link>
             </Button>
           )}
         </div>

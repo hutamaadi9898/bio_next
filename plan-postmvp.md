@@ -27,6 +27,7 @@ Constraints
 - [ ] SEO: add `metadata`/`generateMetadata`, canonical URL, OpenGraph & Twitter meta for profiles
 - [ ] Dynamic OG image route for profiles (`app/(public)/u/[handle]/opengraph-image.tsx`)
 - [ ] Sitemap and robots (`app/sitemap.ts`, `robots`) without external plugins
+- [ ] Landing page: B2C positioning + pricing (Free, $5, $20) with clear CTAs
 - [ ] Add lightweight audit log for mutations (action name, user_id, target id, ts) [db]
 - [ ] Monitoring hooks: structured server logs for action failures (no vendor yet)
 
@@ -113,14 +114,15 @@ Acceptance
 
 ## Phase 7 — Monetization (Lemon Squeezy)
 
-- [ ] Plans/entitlements tables; per‑user plan with grace periods [db]
+- [ ] Plans/entitlements tables reflecting Free, Pro ($5), Max ($20) [db]
 - [ ] Billing provider integration (Checkout + Webhooks) [env][dep]
-- [ ] Feature gates: custom domains, advanced analytics, gallery size caps
+- [ ] Feature gates by plan: custom domains (Max), analytics v2 (Max), advanced themes (Pro+), gallery caps per plan
 - [ ] Soft limits with upsell in UI
 - [ ] Admin backoffice: refunds, plan overrides
 
 Acceptance
 - [ ] Webhooks processed via route handler; idempotent with signature verify
+- [ ] CTAs on landing route users into correct plan signup flows
 
 ---
 
@@ -191,4 +193,3 @@ All schema changes via `drizzle-kit` migrations; never hand‑edit SQL. Add comp
 
 Notes
 - Tag tasks that add deps/env with [dep]/[env] and discuss before implementation to keep the surface minimal and deploys simple.
-

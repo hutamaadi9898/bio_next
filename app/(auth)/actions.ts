@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { revalidatePath } from "next/cache";
@@ -12,8 +12,17 @@ import type { ActionResult } from "@/lib/actions/types";
 import { loginSchema, registerSchema } from "@/lib/validation/auth";
 import { cards, profiles, users } from "@/drizzle/schema";
 import { randomUUID } from "node:crypto";
+import { hitRateLimit } from "@/lib/rate-limit";
+import { logAuditSafe } from "@/lib/audit";
 
 export async function registerAction(_prevState: unknown, formData: FormData): Promise<ActionResult> {
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ua = h.get("user-agent") || "unknown";
+  const rlKey = `register:${ip}:${ua.slice(0, 42)}`;
+  if (await hitRateLimit("register", rlKey, { windowSeconds: 60, max: 5 })) {
+    return { success: false, errors: { form: "Too many attempts. Please wait a minute and try again." } };
+  }
   const parseResult = registerSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -93,10 +102,18 @@ export async function registerAction(_prevState: unknown, formData: FormData): P
   cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
 
   revalidatePath("/dashboard");
+  await logAuditSafe({ userId, action: "register", entity: "user", entityId: userId });
   redirect("/dashboard");
 }
 
 export async function loginAction(_prevState: unknown, formData: FormData): Promise<ActionResult> {
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const ua = h.get("user-agent") || "unknown";
+  const rlKey = `login:${ip}:${ua.slice(0, 42)}`;
+  if (await hitRateLimit("login", rlKey, { windowSeconds: 60, max: 10 })) {
+    return { success: false, errors: { form: "Too many attempts. Please wait a minute and try again." } };
+  }
   const parseResult = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -131,6 +148,7 @@ export async function loginAction(_prevState: unknown, formData: FormData): Prom
   cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
 
   revalidatePath("/dashboard");
+  await logAuditSafe({ userId: user.id, action: "login", entity: "user", entityId: user.id });
   redirect("/dashboard");
 }
 
@@ -142,5 +160,6 @@ export async function logoutAction() {
     const cookieStore = await cookies();
     cookieStore.set(blankCookie.name, blankCookie.value, blankCookie.attributes);
   }
+  await logAuditSafe({ userId: session?.userId ?? null, action: "logout", entity: "user", entityId: session?.userId ?? null });
   redirect("/");
 }

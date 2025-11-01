@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,7 @@ export type BentoGridProps = {
  * fluid when cards move between positions.
  */
 export function BentoGrid({ items, className }: BentoGridProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <LayoutGroup>
       <div
@@ -46,10 +47,10 @@ export function BentoGrid({ items, className }: BentoGridProps) {
               key={item.id}
               layout
               layoutId={item.id}
-              initial={{ opacity: 0, y: 24 }}
+              initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ type: "spring", damping: 18, stiffness: 220 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24 }}
+              transition={reduceMotion ? { duration: 0 } : { type: "spring", damping: 18, stiffness: 220 }}
               className={cn(
                 "group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-card p-5 text-card-foreground shadow-sm",
                 item.accentColor ? "border-transparent" : undefined,

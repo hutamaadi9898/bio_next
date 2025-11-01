@@ -77,3 +77,29 @@
     @apply min-h-screen bg-background text-foreground antialiased;
   }
 }
+
+/* Accessibility: skip link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  padding: 8px 12px;
+  border-radius: 0.5rem;
+  z-index: 1000;
+}
+.skip-link:focus {
+  top: 8px;
+  left: 8px;
+  outline: 2px solid hsl(var(--ring));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

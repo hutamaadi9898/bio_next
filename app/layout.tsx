@@ -16,12 +16,37 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Biogrid — Bento bio link builder",
+    default: "Biogrid — Build your bio link",
     template: "%s | Biogrid",
   },
   description:
-    "Design a highly visual bento-style bio link page with drag and drop cards, analytics and R2-backed media storage.",
+    "Create a beautiful bento-style bio link in minutes. Drag and drop cards, upload images, and share your page.",
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  keywords: [
+    "bio link",
+    "link in bio",
+    "bento grid",
+    "next.js",
+    "creator tools",
+  ],
+  openGraph: {
+    type: "website",
+    title: "Biogrid — Build your bio link",
+    description:
+      "Create a beautiful bento-style bio link in minutes. Drag and drop cards, upload images, and share your page.",
+    url: "/",
+    siteName: "Biogrid",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Biogrid — Build your bio link",
+    description:
+      "Create a beautiful bento-style bio link in minutes. Drag and drop cards, upload images, and share your page.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport: Viewport = {
@@ -39,6 +64,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-background font-sans text-foreground">
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
+            <a href="#main" className="skip-link">Skip to content</a>
             <SiteHeader
               currentUser={
                 currentUser
@@ -50,7 +76,7 @@ export default async function RootLayout({
                   : null
               }
             />
-            <main className="flex-1">{children}</main>
+            <main id="main" className="flex-1">{children}</main>
             <SiteFooter />
           </div>
           <Toaster />

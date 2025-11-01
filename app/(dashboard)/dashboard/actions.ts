@@ -17,6 +17,7 @@ import {
   updateCardSchema,
 } from "@/lib/validation/cards";
 import { uploadImageToR2 } from "@/lib/storage/r2";
+import { logAuditSafe } from "@/lib/audit";
 
 function normaliseColor(color?: string | null) {
   if (!color) return null;
@@ -81,6 +82,7 @@ export async function createCardAction(_prev: unknown, formData: FormData): Prom
   });
 
   revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "card.create", entity: "card", entityId: "(auto)" });
   return { success: true };
 }
 
@@ -129,6 +131,7 @@ export async function updateCardAction(_prev: unknown, formData: FormData): Prom
     .where(and(eq(cards.id, payload.id), eq(cards.profileId, profile.id)));
 
   revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "card.update", entity: "card", entityId: parseResult.data.id });
   return { success: true };
 }
 
@@ -142,6 +145,7 @@ export async function deleteCardAction(cardId: string) {
   await db.delete(cards).where(and(eq(cards.id, parsed.data.cardId), eq(cards.profileId, profile.id)));
 
   revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "card.delete", entity: "card", entityId: parsed.data.cardId });
 }
 
 export async function reorderCardAction(cardId: string, direction: "up" | "down") {
@@ -182,6 +186,7 @@ export async function reorderCardAction(cardId: string, direction: "up" | "down"
   });
 
   revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "card.reorder", entity: "card", entityId: cardId });
 }
 
 export async function updateProfileAction(_prev: unknown, formData: FormData): Promise<ActionResult> {
@@ -221,6 +226,7 @@ export async function updateProfileAction(_prev: unknown, formData: FormData): P
     .where(eq(profiles.id, profile.id));
 
   revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "profile.update", entity: "profile", entityId: profile.id });
   return { success: true };
 }
 

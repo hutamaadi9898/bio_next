@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BentoGrid } from "@/components/bento/bento-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 const previewCards = [
   {
@@ -48,28 +49,28 @@ export default function MarketingPage() {
     <div className="space-y-32 pb-20">
       <section className="container grid gap-10 py-24 md:grid-cols-2">
         <div className="space-y-6">
-          <Badge variant="secondary">Next.js + Server Actions</Badge>
+          <Badge variant="secondary" aria-label="Tech stack badge">Next.js + Server Actions</Badge>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
-            Your bio link, reimagined as an animated Bento grid.
+            Build a beautiful bio link. Share it everywhere.
           </h1>
           <p className="text-lg text-muted-foreground">
-            Biogrid helps creators, agencies, and teams ship beautiful link hubs in minutes. Upload media to R2, drag cards into place, and publish instantly.
+            Biogrid helps creators and freelancers ship gorgeous bento‑style link hubs in minutes. Drag cards into place, add your links, and publish instantly.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/register">Create your page</Link>
+              <Link href="/register" aria-label="Create your page for free">Get started free</Link>
             </Button>
             <Button asChild size="lg" variant="ghost">
-              <Link href="/u/biogrid">See a live demo</Link>
+              <Link href="/u/biogrid" aria-label="See a live demo">See a live demo</Link>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Hosted on your infrastructure via Coolify, backed by PostgreSQL 17 and Cloudflare R2.
-          </p>
+          <p className="text-sm text-muted-foreground">Free plan available. Upgrade anytime.</p>
         </div>
 
         <div className="rounded-3xl border bg-gradient-to-br from-background via-background to-muted p-6 shadow-xl">
-          <BentoGrid items={previewCards} />
+          <ErrorBoundary>
+            <BentoGrid items={previewCards} />
+          </ErrorBoundary>
         </div>
       </section>
 
@@ -91,21 +92,46 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      <section id="pricing" className="container rounded-3xl border bg-muted/40 p-12">
-        <div className="grid gap-10 md:grid-cols-2 md:gap-16">
-          <div className="space-y-4">
-            <h2 className="text-3xl font-semibold tracking-tight">Simple, self-hosted pricing.</h2>
-            <p className="text-muted-foreground">
-              Deploy once on your Coolify instance. Unlimited pages, members, and analytics baked in.
-            </p>
+      <section id="pricing" className="container space-y-10 rounded-3xl border bg-muted/40 p-12">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-semibold tracking-tight">Pricing for creators</h2>
+          <p className="mt-3 text-muted-foreground">Start free. Unlock advanced customization and analytics as you grow.</p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="rounded-2xl border bg-background p-8 shadow-sm" aria-label="Free plan">
+            <p className="text-xl font-semibold">Free</p>
+            <p className="mt-1 text-4xl font-bold">$0</p>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <li>• 1 bio page</li>
+              <li>• Core card types</li>
+              <li>• Basic click counts</li>
+            </ul>
+            <Button asChild className="mt-6 w-full" variant="secondary">
+              <Link href="/register" aria-label="Start free">Start free</Link>
+            </Button>
           </div>
-          <div className="flex flex-col justify-center gap-6 rounded-2xl border bg-background p-8 shadow-sm">
-            <div>
-              <p className="text-4xl font-semibold">$0</p>
-              <p className="text-sm text-muted-foreground">Self-host forever. Optional pro support if you need a hand.</p>
-            </div>
-            <Button asChild size="lg">
-              <Link href="mailto:hello@example.com">Talk to us</Link>
+          <div className="rounded-2xl border bg-background p-8 shadow-sm ring-1 ring-primary/20" aria-label="Pro plan">
+            <p className="text-xl font-semibold">Pro</p>
+            <p className="mt-1 text-4xl font-bold">$5</p>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <li>• Everything in Free</li>
+              <li>• Advanced themes</li>
+              <li>• Priority support</li>
+            </ul>
+            <Button asChild className="mt-6 w-full">
+              <Link href="/register" aria-label="Choose Pro">Choose Pro</Link>
+            </Button>
+          </div>
+          <div className="rounded-2xl border bg-background p-8 shadow-sm" aria-label="Max plan">
+            <p className="text-xl font-semibold">Max</p>
+            <p className="mt-1 text-4xl font-bold">$20</p>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <li>• Everything in Pro</li>
+              <li>• Custom domains</li>
+              <li>• Analytics v2</li>
+            </ul>
+            <Button asChild className="mt-6 w-full">
+              <Link href="/register" aria-label="Go Max">Go Max</Link>
             </Button>
           </div>
         </div>
