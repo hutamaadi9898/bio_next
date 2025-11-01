@@ -1,195 +1,245 @@
-# Post‑MVP Roadmap (Phased, Atomic, Checklists)
+# Post-MVP Roadmap — Bento-Inspired UI/UX Edition
 
-Purpose: plan incremental features after MVP while staying aligned with AGENTS.md conventions: Server Components-first, Server Actions for mutations, Drizzle + Postgres 17, R2 storage, type‑safe TS, minimal env vars, and Coolify deploys.
+Purpose: plan incremental features after MVP while staying aligned with AGENTS.md conventions: Server Components-first, Server Actions for mutations, Drizzle + Postgres 17, R2 storage, type-safe TS, minimal env vars, and Coolify deploys.
 
-Legend
-- [ ] task (atomic)
-- [dep] introduces a dependency — discuss first
-- [env] introduces new env vars — discuss first
-- [db] requires a migration via drizzle‑kit
+Legend  
+- [ ] task (atomic)  
+- [dep] introduces a dependency — discuss first  
+- [env] introduces new env vars — discuss first  
+- [db] requires a migration via drizzle-kit
 
-Constraints
-- Mutations via Server Actions only; always validate inputs and authorize (`auth()` / `requireUser()`) and call `revalidatePath()` / `revalidateTag()`.
-- Prefer Server Components; keep client islands leaf‑level and small.
+Constraints  
+- Mutations via Server Actions only; always validate inputs and authorize (`auth()` / `requireUser()`); call `revalidatePath()` / `revalidateTag()`.  
+- Prefer Server Components; keep client islands small/leaf-level.  
 - Do not add env vars or heavy deps without prior discussion.
 
 ---
 
 ## Phase 1 — Hardening, UX, and Quality (no new env)
 
-- [x] Accessibility pass on interactive UI (labels, roles, focus, kbd nav)
-- [x] Color contrast, prefers‑reduced‑motion fallbacks, skip links
-- [x] Error boundaries for client islands; friendly empty/error states
-- [x] Form validation messages consistent (server‑validated), i18n‑neutral copy
-- [x] Enforce max sizes on images (client hint + server check) and MIME sniffing
-- [x] Add basic rate‑limit for sensitive actions (per‑user, sliding window) [db]
-- [x] Click tracking hygiene: ignore bots via simple UA filter; debounce multiple rapid clicks per session
-- [x] SEO: add `metadata`/`generateMetadata`, canonical URL, OpenGraph & Twitter meta for profiles
-- [x] Dynamic OG image route for profiles (`app/(public)/u/[handle]/opengraph-image.tsx`)
-- [x] Sitemap and robots (`app/sitemap.ts`, `robots`) without external plugins
-- [x] Landing page: B2C positioning + pricing (Free, $5, $20) with clear CTAs
-- [x] Add lightweight audit log for mutations (action name, user_id, target id, ts) [db]
-- [x] Monitoring hooks: structured server logs for action failures (no vendor yet)
+- [x] Accessibility pass on interactive UI (labels, roles, focus, keyboard nav)
+- [x] Motion fallbacks (`prefers-reduced-motion`), color contrast, skip links
+- [x] Friendly empty states suggesting hero tile first (Bento pattern)
+- [x] Consistent, server-validated form messages (i18n-neutral copy)
+- [x] Enforce image sizes & MIME types (client hints + server check)
+- [x] Add per-user sliding-window rate limit [db]
+- [x] Click tracking hygiene: debounce + bot filter
+- [x] SEO: canonical URL, OpenGraph, Twitter meta
+- [x] Dynamic OG image route (`app/(public)/u/[handle]/opengraph-image.tsx`)
+- [x] Sitemap & robots (no plugin)
+- [x] Landing: B2C positioning + pricing (Free, $5, $20) with clear CTAs
+- [x] Lightweight audit log for mutations [db]
+- [x] Structured server logs for failed actions
 
-Acceptance
-- [x] Axe (or manual) a11y checks pass on key screens
-- [x] Public profiles render OG images and correct meta
-- [x] Actions show rate‑limit response with friendly UI; no client fetch for writes
-
----
-
-## Phase 2 — Editor Improvements (grid, draft/publish)
-
-- [x] Grid drag‑to‑reorder refinements with Framer Motion (stable IDs, layout)
-- [x] Resize support: persist `cols`/`rows` on card; snap to grid [db]
-- [x] Keyboard reorder (accessibility) with visual outline
-- [x] Undo/redo (client‑side) for reorder; commit via Server Action
-- [x] Draft/publish toggle on profile: `published_at` nullable field [db]
-- [x] Preview mode in editor (server rendered, read-only)
- - [x] Revalidation strategy: revalidate public path(s) on publish only
-
-Acceptance
-- [x] Reorder/resize persists via Server Actions with validation and auth
-- [x] Draft profiles are not publicly accessible; publish toggles visibility
+**Acceptance**
+- [x] Axe / manual a11y checks pass
+- [x] Public profiles render OG images + meta correctly
+- [x] Rate-limit UI friendly; no client fetches for writes
 
 ---
 
-## Phase 3 — New Card Types (opt‑in, light embeds)
+## Phase 2 — Editor Improvements (Grid & Draft/Publish)
 
-- [x] CardVideo: YouTube with lite embed (no iframe until play)
-- [x] CardMusic: Spotify lightweight iframe embed (dark theme)
-- [ ] CardMap: Static map preview (image) with link to map app; avoid JS SDKs
-- [ ] CardGallery: simple image grid backed by R2; upload multiple images [db]
-- [ ] CardContact: mailto fallback; server‑sent contact form optional [env][dep]
-- [ ] CardDivider/Spacer for layout composition (no data cost)
+- [x] Drag-reorder (Framer Motion, stable IDs)
+- [x] Resize support: persist `cols`/`rows`; snap to grid [db]
+- [x] Keyboard reorder with visible outline
+- [x] Client-side undo/redo; commit via Server Action
+- [x] Draft/publish toggle (`published_at` nullable) [db]
+- [x] Read-only Preview mode (server rendered)
+- [x] Revalidate only on publish
 
-DB & actions
-- [ ] Extend `card.type` union and narrow discriminated payloads [db]
-- [ ] Validate per‑type `data_json` schema (zod or hand‑rolled)
-
-Acceptance
-- [ ] New cards render on public and editor views without large bundle growth
+**Acceptance**
+- [x] Reorder/resize persists via Server Actions
+- [x] Drafts hidden; publish toggles visibility
 
 ---
 
-## Phase 4 — Auth Enhancements (optional)
+## Phase 3 — Bento Visual System & Themes (no new env)
 
-- [ ] Email verification flow (tokens table, expiry, verified_at) [db][env][dep]
-- [ ] Password reset via time‑boxed token + server action [db][env][dep]
-- [ ] Session management UI (list + revoke)
-- [ ] Optional OAuth: GitHub/Google with Lucia adapters [env][dep]
-- [ ] 2FA (TOTP) opt‑in for Pro later [db][dep]
+Goal: replicate Bento’s *rich, asymmetric, aesthetic-first* feel through presets — not deep customization.
 
-Acceptance
-- [ ] Unverified users limited in public exposure; flows gated by feature flags
+- [ ] Theme presets (`theme_json` variants: Minimal, Studio, Neon, Pastel)
+- [ ] Asymmetric grid templates (“Hero + 2”, “Hero + Masonry”, “Cards Only”)
+- [ ] Typographic tokens (display/title/label) unified across tiles
+- [ ] Micro-interactions: hover lift, tap scale, focus rings
+- [ ] Auto-palette from avatar/hero image (server color extraction) [dep]
+- [ ] Mobile thumb-zone alignment (CTA placement)
 
----
-
-## Phase 5 — Analytics v2 (privacy‑aware, no vendor)
-
-- [ ] Unique visitors (daily) using salted hash of IP+UA (salt rotates) [db]
-- [ ] Referrers + basic UTM capture on click [db]
-- [ ] Time‑series rollups (daily) materialized table via scheduled action [db]
-- [ ] Export CSV for clicks/visitors
-- [ ] Toggle analytics visibility on public profile
-
-Acceptance
-- [ ] Public profile loads without client analytics bundles
-- [ ] Server‑side collection only; no PII stored
+**Acceptance**
+- [ ] Preset switch changes layout/palette/typography instantly
+- [ ] All presets meet AA contrast
 
 ---
 
-## Phase 6 — Custom Domains (advanced)
+## Phase 4 — Onboarding & Content Ingestion
 
-- [ ] Domain mapping tables: `domain` (host unique, profile_id, verified_at) [db]
-- [ ] Host routing by `headers().get('host')` in App Router
-- [ ] DNS verification via TXT; ownership UI [env]
-- [ ] Wildcard or per‑domain setup in Coolify; document deploy steps
-- [ ] Canonical URL + redirects between `app` domain and custom domains
+Goal: “Show, don’t tell.” Get users to a visual grid fast.
 
-Acceptance
-- [ ] Requests resolve profile by host; public cache keys include host
+- [ ] Starter flow: choose preset → upload avatar/hero → add 3 links
+- [ ] Social parser: detect handle → resolve URL + icon
+- [ ] Autogenerate first layout (“Hero”, “About”, “Links”)
+- [ ] Share sheet: copy link, QR, social share intents
 
----
-
-## Phase 7 — Monetization (Lemon Squeezy)
-
-- [ ] Plans/entitlements tables reflecting Free, Pro ($5), Max ($20) [db]
-- [ ] Billing provider integration (Checkout + Webhooks) [env][dep]
-- [ ] Feature gates by plan: custom domains (Max), analytics v2 (Max), advanced themes (Pro+), gallery caps per plan
-- [ ] Soft limits with upsell in UI
-- [ ] Admin backoffice: refunds, plan overrides
-
-Acceptance
-- [ ] Webhooks processed via route handler; idempotent with signature verify
-- [ ] CTAs on landing route users into correct plan signup flows
+**Acceptance**
+- [ ] Users publish an attractive grid within 4 clicks
+- [ ] Always at least one hero tile
 
 ---
 
-## Phase 8 — Media & Storage Enhancements
+## Phase 5 — New Card Types (opt-in, light embeds)
 
-- [ ] Optional private bucket + signed URL helpers [env]
-- [ ] Image transforms: generate responsive variants on upload [dep]
-- [ ] Strip EXIF on upload (security/privacy) [dep]
-- [ ] Background jobs: best‑effort queue using DB + server cron (document cadence)
+- [x] CardVideo: YouTube lite embed
+- [x] CardMusic: Spotify lightweight iframe
+- [ ] CardMap: static image preview + deep link
+- [ ] CardGallery: image grid from R2; multi-upload [db]
+- [ ] CardContact: mailto fallback + optional form [env][dep]
+- [ ] CardDivider/Spacer for layout rhythm
 
-Acceptance
-- [ ] Public pages still serve images via Next/Image or R2 public base URL
+**DB & Actions**
+- [ ] Extend `card.type` union; discriminated payloads [db]
+- [ ] Validate `data_json` per card type (zod or hand-rolled)
 
----
-
-## Phase 9 — API Surface & Webhooks (minimal)
-
-- [ ] Public read API for profile JSON (stable, cached) — route handler
-- [ ] Incoming webhooks: billing, optional GitHub/Google auth callbacks
-- [ ] Outbound webhooks (optional) for analytics exports [env]
-- [ ] API keys table with scopes & rate‑limit [db]
-
-Acceptance
-- [ ] No duplication with Server Actions for writes; API is read‑only (MVP)
+**Acceptance**
+- [ ] New cards render in editor + public views
+- [ ] No large bundle growth
 
 ---
 
-## Phase 10 — Internationalization (optional)
+## Phase 6 — Motion & Performance Polish (no new env)
 
-- [ ] Framework selection (next‑intl) [dep]
-- [ ] Extract strings, minimal locales (en → id)
-- [ ] Locale routing for public profiles (opt‑in, no SEO harm)
+- [ ] Staggered tile entry (SSR-safe)
+- [ ] Idle image prefetch via server hints
+- [ ] Skeletons matching tile dimensions; themed colors
+- [ ] Continuous layout stability (CLS < 0.05)
+
+**Acceptance**
+- [ ] LCP ≤ 2.5s on mid device (4G)
+- [ ] No layout shift on load
+
+---
+
+## Phase 7 — Auth Enhancements (optional)
+
+- [ ] Email verification (token, expiry, `verified_at`) [db][env][dep]
+- [ ] Password reset flow [db][env][dep]
+- [ ] Session management UI
+- [ ] OAuth (GitHub/Google via Lucia) [env][dep]
+- [ ] 2FA (TOTP) [db][dep]
+
+**Acceptance**
+- [ ] Unverified users restricted; feature-flag gated
+
+---
+
+## Phase 8 — Analytics v2 (privacy-aware, no vendor)
+
+- [ ] Unique visitors (daily) via salted IP+UA [db]
+- [ ] Referrers + UTM capture [db]
+- [ ] Time-series rollups via scheduled Server Action [db]
+- [ ] CSV export
+- [ ] Analytics toggle on public profile
+
+**Acceptance**
+- [ ] Public loads with no analytics bundle
+- [ ] Server-side only, no PII
+
+---
+
+## Phase 9 — Custom Domains (advanced)
+
+- [ ] Domain mapping (`domain`: host unique, profile_id, verified_at) [db]
+- [ ] Host routing via `headers().get('host')`
+- [ ] DNS TXT verification [env]
+- [ ] Coolify wildcard/per-domain setup docs
+- [ ] Canonical + redirect rules
+
+**Acceptance**
+- [ ] Host-based profile resolution; cache includes host
+
+---
+
+## Phase 10 — Monetization (Lemon Squeezy)
+
+- [ ] Billing tables: `plan`, `user_plan`, `provider_events` [db]
+- [ ] Checkout + Webhooks integration [env][dep]
+- [ ] Feature gates by plan (domains=Max, themes=Pro+, caps by tier)
+- [ ] Soft limits + upsell CTAs
+- [ ] Admin backoffice (refunds, overrides)
+
+**Acceptance**
+- [ ] Idempotent webhooks (signature verified)
+- [ ] CTAs route to proper plan signup
+
+---
+
+## Phase 11 — Media & Storage Enhancements
+
+- [ ] Private bucket + signed URL helpers [env]
+- [ ] Responsive image variants [dep]
+- [ ] Strip EXIF data [dep]
+- [ ] Background jobs via DB + server cron
+
+**Acceptance**
+- [ ] Public pages serve via Next/Image or R2 URLs
+
+---
+
+## Phase 12 — API Surface & Webhooks
+
+- [ ] Public read-only profile JSON route
+- [ ] Incoming webhooks (billing, auth callbacks)
+- [ ] Outbound webhooks (analytics exports) [env]
+- [ ] API keys table (scopes, rate-limit) [db]
+
+**Acceptance**
+- [ ] Read-only API; no write duplication
+
+---
+
+## Phase 13 — Internationalization (optional)
+
+- [ ] Choose framework (next-intl) [dep]
+- [ ] Extract strings (en → id)
+- [ ] Locale routing for profiles (opt-in, SEO-safe)
 
 ---
 
 ## Database Changes (overview)
 
-- [x] card: add `cols` int, `rows` int (resize); ensure bounds and defaults [db]
-- [x] profile: add `published_at` nullable, `theme_json` already present [db]
-- [x] audit_log: (id, user_id, action, entity, entity_id, created_at) [db]
-- [x] rate_limit: (user_id, action, window_start, count) composite unique [db]
-- [ ] analytics tables: `click_event_raw`, `visit_daily` rollup [db]
-- [ ] domain: (host unique, profile_id, verified_at, created_at) [db]
-- [ ] billing: `plan`, `user_plan`, `provider_events` [db]
-- [ ] auth extras: `email_verification`, `password_reset`, `totp_secret` [db]
-- [ ] api_keys: (user_id, key_hash, scopes, created_at, revoked_at) [db]
+- [x] `card`: add `cols`, `rows` [db]
+- [x] `profile`: add `published_at`, `theme_json` present [db]
+- [x] `audit_log`: (id, user_id, action, entity, entity_id, created_at) [db]
+- [x] `rate_limit`: (user_id, action, window_start, count) unique [db]
+- [ ] `analytics`: `click_event_raw`, `visit_daily` [db]
+- [ ] `domain`: (host unique, profile_id, verified_at, created_at) [db]
+- [ ] `billing`: `plan`, `user_plan`, `provider_events` [db]
+- [ ] `auth`: `email_verification`, `password_reset`, `totp_secret` [db]
+- [ ] `api_keys`: (user_id, key_hash, scopes, created_at, revoked_at) [db]
+- [ ] `profile_preset`: (profile_id, preset_key, created_at) [db]
 
-All schema changes via `drizzle-kit` migrations; never hand‑edit SQL. Add compound uniques where needed (e.g., `card(profile_id, position)`; `rate_limit(user_id, action, window_start)`).
-
----
-
-## Non‑Goals (for now)
-
-- SSR‑unfriendly heavy SDK embeds that bloat client bundles
-- Client‑side fetch for writes; stick to Server Actions
-- Real‑time collaboration (would require websockets or a broker)
+> All migrations via `drizzle-kit`; never hand-edit SQL.
 
 ---
 
-## References (for implementers)
+## Non-Goals
 
-- Next.js Server Actions, cache, `revalidatePath`: /vercel/next.js
-- Lucia sessions (Next.js App Router): /lucia-auth/lucia
-- Drizzle ORM (Postgres, constraints, migrations): /drizzle-team/drizzle-orm-docs
-- Cloudflare R2 (S3, endpoint `https://<accountid>.r2.cloudflarestorage.com`, `region: 'auto'`): /websites/developers_cloudflare_r2
-- shadcn/ui primitives (form, dialog, toast): /shadcn-ui/ui
-- Framer Motion (layout / reorder patterns): /grx7/framer-motion
+- Heavy SDK embeds (SSR-unfriendly)
+- Client fetches for writes
+- Real-time collaboration
 
-Notes
-- Tag tasks that add deps/env with [dep]/[env] and discuss before implementation to keep the surface minimal and deploys simple.
+---
+
+## Implementation Notes
+
+- Grid templates: asymmetric “bento” layouts with tokenized spacing and typography.  
+- Tiles: media-first, minimal chrome, motion for delight with graceful fallbacks.  
+- Focus on default beauty — published profiles should look good even with minimal input.
+
+References  
+- Bento.me design study (visual hierarchy, asymmetric grid)  
+- Next.js Server Actions, cache, `revalidatePath`  
+- Lucia Auth (App Router sessions)  
+- Drizzle ORM (Postgres 17)  
+- Cloudflare R2 (S3 compatible)  
+- shadcn/ui (form, dialog, toast)  
+- Framer Motion (layout transitions)
