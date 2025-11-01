@@ -56,8 +56,8 @@ Acceptance
 
 ## Phase 3 — New Card Types (opt‑in, light embeds)
 
-- [ ] CardVideo: YouTube/Vimeo with lite embeds; no heavy iframes by default [dep]
-- [ ] CardMusic: Spotify/Apple Music lightweight embeds [dep]
+- [x] CardVideo: YouTube with lite embed (no iframe until play)
+- [x] CardMusic: Spotify lightweight iframe embed (dark theme)
 - [ ] CardMap: Static map preview (image) with link to map app; avoid JS SDKs
 - [ ] CardGallery: simple image grid backed by R2; upload multiple images [db]
 - [ ] CardContact: mailto fallback; server‑sent contact form optional [env][dep]

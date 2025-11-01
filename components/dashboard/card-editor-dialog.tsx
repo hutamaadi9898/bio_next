@@ -75,7 +75,7 @@ export function CardEditorDialog({ trigger, card }: CardEditorDialogProps) {
                 id="type"
                 name="type"
                 defaultValue={card?.type ?? cardTypeValues[0]}
-                className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {cardTypeValues.map((type) => (
                   <option key={type} value={type}>
@@ -101,7 +101,11 @@ export function CardEditorDialog({ trigger, card }: CardEditorDialogProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="url">URL</Label>
-            <Input id="url" name="url" defaultValue={card?.url ?? ""} placeholder="https://" />
+            <Input id="url" name="url" defaultValue={card?.url ?? ""} placeholder="https://"
+              aria-describedby="url-help" />
+            <p id="url-help" className="text-xs text-muted-foreground">
+              For video/music/map, paste the public link (YouTube, Spotify, Google Maps, etc.).
+            </p>
             {state && !state.success && state.errors.url ? (
               <p className="text-sm text-destructive">{state.errors.url}</p>
             ) : null}

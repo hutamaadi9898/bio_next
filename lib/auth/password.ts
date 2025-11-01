@@ -1,15 +1,11 @@
-import { Argon2id } from "oslo/password";
+import bcrypt from "bcryptjs";
 
-const hasher = new Argon2id({
-  memorySize: 19456,
-  iterations: 2,
-  parallelism: 1,
-});
+const SALT_ROUNDS = 12;
 
-export async function hashPassword(password: string) {
-  return hasher.hash(password);
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
-export async function verifyPassword(hash: string, candidate: string) {
-  return hasher.verify(hash, candidate);
+export async function verifyPassword(hash: string, candidate: string): Promise<boolean> {
+  return bcrypt.compare(candidate, hash);
 }

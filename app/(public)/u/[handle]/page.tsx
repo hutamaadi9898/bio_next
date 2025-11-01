@@ -8,6 +8,9 @@ import { PublicCardLink } from "@/components/public/card-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
+import { extractYouTubeId, toSpotifyEmbedUrl } from "@/lib/utils";
+import { YouTubeLite } from "@/components/public/youtube-lite";
+import { SpotifyEmbed } from "@/components/public/spotify-embed";
 import type { Card as CardRow } from "@/drizzle/schema";
 
 const getProfile = cache(async (handle: string) => {
@@ -137,6 +140,52 @@ function mapCard(card: CardRow): BentoCardData {
         media: <PublicCardLink cardId={card.id} href={emailHref} label="Send email" newTab={false} />,
       } as BentoCardData;
     }
+    case "video": {
+      const href = card.url ?? "#";
+      const ytId = card.url ? extractYouTubeId(card.url) : null;
+      return {
+        ...common,
+        href,
+        media: ytId ? (
+          <div className="mt-2">
+            <YouTubeLite videoId={ytId} title={card.title} />
+          </div>
+        ) : (
+          <PublicCardLink cardId={card.id} href={href} label="Watch" />
+        ),
+      } as BentoCardData;
+    }
+    case "music": {
+      const href = card.url ?? "#";
+      const embedUrl = card.url ? toSpotifyEmbedUrl(card.url) : null;
+      return {
+        ...common,
+        href,
+        media: embedUrl ? (
+          <div className="mt-2">
+            <SpotifyEmbed embedUrl={embedUrl} title={card.title} />
+          </div>
+        ) : (
+          <PublicCardLink cardId={card.id} href={href} label="Listen" />
+        ),
+      } as BentoCardData;
+    }
+    case "map": {
+      const href = card.url ?? "#";
+      return {
+        ...common,
+        href,
+        media: <PublicCardLink cardId={card.id} href={href} label="Open map" />,
+      } as BentoCardData;
+    }
+    case "divider":
+      return {
+        ...common,
+        description: undefined,
+        media: (
+          <div aria-hidden className="my-2 h-px w-full bg-border" />
+        ),
+      } as BentoCardData;
     case "text":
     default:
       return {

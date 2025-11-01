@@ -1,19 +1,19 @@
 **Project Goal**
-- Build a bio link generator with a Bento grid layout using Next.js (App Router), Server Actions, TypeScript, Tailwind, shadcn/ui, Framer Motion, Lucia auth, PostgreSQL 17, and Cloudflare R2. Keep environment variables minimal.
+- Build a bio link generator with a Bento grid layout using Next.js (App Router), Server Actions, TypeScript, Tailwind, shadcn/ui, Framer Motion, NextAuth.js, PostgreSQL 17, and Cloudflare R2. Keep environment variables minimal.
 
 **Stack**
 - Next.js (App Router) + Server Actions
 - TypeScript (strict)
 - Tailwind CSS + shadcn/ui
 - Framer Motion for Bento animations
-- Lucia for authentication (sessions, email/password only for MVP)
+- NextAuth.js for authentication (database sessions, email/password Credentials provider for MVP)
 - PostgreSQL 17 (via Drizzle ORM)
 - Cloudflare R2 for media storage (S3-compatible via AWS SDK v3)
 
 **Architecture Overview**
 - UI: Server Components-first, Client Components where interaction/animation is required.
 - Data: Drizzle ORM schema and migrations targeting PostgreSQL 17.
-- Auth: Lucia sessions stored in Postgres; email/password for MVP (no OAuth to keep env minimal).
+- Auth: NextAuth.js sessions stored in Postgres; email/password via Credentials provider for MVP (no OAuth to keep env minimal).
 - Storage: R2 bucket for avatars/backgrounds/media; uploads handled via Server Actions.
 - Routing: Public profile at `/u/:handle`; authenticated editor at `/dashboard`.
 - Deployment: Coolify on VPS (Node.js runtime, `output: standalone`).
@@ -22,11 +22,11 @@
 **Milestones**
 1) Scaffold & Tooling
 - Initialize Next.js App Router + TS; Tailwind; set up shadcn/ui; Framer Motion.
-- Add Drizzle ORM + Postgres driver; Lucia; R2 S3 client wrapper.
+- Add Drizzle ORM + Postgres driver; NextAuth.js with bcryptjs; R2 S3 client wrapper.
 - Add base layout, theme, and Bento primitives.
 
-2) Auth (Lucia, minimal env)
-- Email/password sign up/in/out; password hashing with `oslo/password`.
+2) Auth (NextAuth.js, minimal env)
+- Email/password sign up/in/out; password hashing with `bcryptjs`.
 - Protect `/dashboard`; expose `auth()` helper for Server Actions.
 
 3) Database & Migrations
@@ -83,7 +83,7 @@ Notes:
 - `NEXT_PUBLIC_APP_URL` — base URL for generating absolute links.
 
 Notes:
-- Auth via email/password with Lucia requires no provider secrets (keeps env minimal). Add OAuth secrets later if needed.
+- Auth via email/password with NextAuth.js Credentials provider requires no OAuth provider secrets (keeps env minimal). Add OAuth later if needed.
 - R2 S3 endpoint is derived from account id (e.g., `https://<accountid>.r2.cloudflarestorage.com`).
 
 **Local Development**
@@ -93,14 +93,14 @@ Notes:
 - Scripts (planned): `dev`, `build`, `start`, `db:generate`, `db:migrate`, `db:studio`.
 
 **Security & Compliance**
-- Hash passwords with `argon2id` via `oslo/password`.
+- Hash passwords with `bcryptjs` (12 salt rounds).
 - Validate file uploads (type/size), strip EXIF for images if needed.
 - Use Server Actions only on secure forms; add CSRF-safe patterns (non-GET, revalidatePath).
 - Enforce per-user access control for all mutations.
 
 **Key Implementation Decisions (assumptions)**
 - ORM: Drizzle ORM for type-safe Postgres 17 and smooth Server Actions usage.
-- Auth: Lucia with session cookies, custom email/password forms.
+- Auth: NextAuth.js with database sessions, custom email/password forms using Credentials provider.
 - Bento: Use CSS Grid + Framer Motion for enter/reorder transitions; start with simple `position` ordering.
 - Analytics: Only click count for MVP.
 - R2: Public bucket for MVP.
@@ -123,7 +123,7 @@ Notes:
 
 **Doc References (for build-time accuracy)**
 - Next.js: /vercel/next.js
-- Lucia: /lucia-auth/lucia
+- NextAuth.js: /nextauthjs/next-auth
 - Drizzle ORM: /drizzle-team/drizzle-orm-docs
 - Tailwind: /tailwindlabs/tailwindcss.com
 - shadcn/ui: /shadcn-ui/ui

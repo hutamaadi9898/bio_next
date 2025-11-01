@@ -1,11 +1,74 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: oklch(100% 0 0);
+  --color-foreground: oklch(15% 0.01 240);
+
+  --color-muted: oklch(96% 0.005 240);
+  --color-muted-foreground: oklch(46% 0.004 240);
+
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(15% 0.01 240);
+
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(15% 0.01 240);
+
+  --color-border: oklch(90% 0.006 240);
+  --color-input: oklch(90% 0.006 240);
+
+  --color-primary: oklch(10% 0.006 240);
+  --color-primary-foreground: oklch(98% 0 0);
+
+  --color-secondary: oklch(96% 0.005 240);
+  --color-secondary-foreground: oklch(10% 0.006 240);
+
+  --color-accent: oklch(96% 0.005 240);
+  --color-accent-foreground: oklch(10% 0.006 240);
+
+  --color-destructive: oklch(60% 0.17 0);
+  --color-destructive-foreground: oklch(98% 0 0);
+
+  --color-ring: oklch(65% 0.005 240);
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --color-background: oklch(15% 0.01 240);
+  --color-foreground: oklch(98% 0 0);
+
+  --color-muted: oklch(16% 0.004 240);
+  --color-muted-foreground: oklch(65% 0.005 240);
+
+  --color-popover: oklch(15% 0.01 240);
+  --color-popover-foreground: oklch(98% 0 0);
+
+  --color-card: oklch(15% 0.01 240);
+  --color-card-foreground: oklch(98% 0 0);
+
+  --color-border: oklch(16% 0.004 240);
+  --color-input: oklch(16% 0.004 240);
+
+  --color-primary: oklch(98% 0 0);
+  --color-primary-foreground: oklch(10% 0.006 240);
+
+  --color-secondary: oklch(16% 0.004 240);
+  --color-secondary-foreground: oklch(98% 0 0);
+
+  --color-accent: oklch(16% 0.004 240);
+  --color-accent-foreground: oklch(98% 0 0);
+
+  --color-destructive: oklch(31% 0.13 0);
+  --color-destructive-foreground: oklch(98% 0 0);
+
+  --color-ring: oklch(84% 0.005 240);
+}
 
 @layer base {
   :root {
-    /* Default to system sans if font variable isn't overridden */
-    --font-sans: ui-sans-serif;
+    /* Keeping legacy HSL vars for compatibility */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
@@ -70,11 +133,15 @@
   }
 
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply min-h-screen bg-background text-foreground antialiased;
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -89,6 +156,7 @@
   border-radius: 0.5rem;
   z-index: 1000;
 }
+
 .skip-link:focus {
   top: 8px;
   left: 8px;

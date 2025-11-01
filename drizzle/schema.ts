@@ -11,7 +11,18 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const cardTypeEnum = pgEnum("card_type", ["link", "social", "email", "text", "image"]);
+export const cardTypeEnum = pgEnum("card_type", [
+  "link",
+  "social",
+  "email",
+  "text",
+  "image",
+  // Phase 3: lightweight, opt-in types (no heavy embeds)
+  "video",
+  "music",
+  "map",
+  "divider",
+]);
 
 export const users = pgTable(
   "users",

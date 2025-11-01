@@ -5,7 +5,16 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 
 import { cn } from "@/lib/utils";
 
-export type BentoCardType = "link" | "social" | "email" | "text" | "image";
+export type BentoCardType =
+  | "link"
+  | "social"
+  | "email"
+  | "text"
+  | "image"
+  | "video"
+  | "music"
+  | "map"
+  | "divider";
 
 export type BentoCardData = {
   id: string;

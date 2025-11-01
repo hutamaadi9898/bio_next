@@ -9,7 +9,7 @@ This AGENTS.md applies to the entire repository.
 - Framework: Next.js (App Router, Server Components-first).
 - Styling: Tailwind CSS with shadcn/ui components.
 - Animations: Framer Motion; avoid heavy runtime state for simple transitions.
-- Auth: Lucia sessions; start with email/password (no OAuth by default).
+- Auth: NextAuth.js with database sessions; email/password via Credentials provider (no OAuth by default).
 - DB: PostgreSQL 17 via Drizzle ORM and drizzle-kit migrations.
 - Storage: Cloudflare R2 via S3-compatible AWS SDK v3 client.
 - Mutations: Server Actions only; no client-side fetch for writes unless justified.
@@ -21,9 +21,9 @@ This AGENTS.md applies to the entire repository.
   - `app/(public)/u/[handle]/page.tsx` — public profile.
   - `app/(auth)/login`, `app/(auth)/register` — auth routes.
   - `app/(dashboard)/dashboard/page.tsx` — editor.
-  - `app/api/*` — avoid unless strictly necessary; prefer Server Actions.
+  - `app/api/auth/[...nextauth]/route.ts` — NextAuth API route handler.
 - `components/` — UI components (prefer Server Components; use `"use client"` only when needed).
-- `lib/` — non-UI modules: `db` (drizzle), `auth` (lucia), `r2` (S3 client), `env`.
+- `lib/` — non-UI modules: `db` (drizzle), `auth` (nextauth config, adapter, session), `r2` (S3 client), `env`.
 - `drizzle/` — schema and migrations.
  - `next.config.ts` — set `output: 'standalone'` for containerized deploys (Coolify).
 
@@ -45,11 +45,12 @@ This AGENTS.md applies to the entire repository.
 - Prefer explicit selects; avoid `selectAll` in hot paths.
 - Use `position` integers for simple ordering; add compound unique constraints where needed.
 
-**Auth (Lucia)**
-- Store sessions in Postgres. Do not rely on JWT for sessions.
-- Passwords: hash with `argon2id` via `oslo/password`.
-- Expose `auth()` and `requireUser()` utilities for Server Actions and layouts.
+**Auth (NextAuth.js)**
+- Store sessions in Postgres via database strategy. Do not rely on JWT for sessions.
+- Passwords: hash with `bcryptjs` (12 salt rounds).
+- Expose `getCurrentUser()` and `requireUser()` utilities for Server Actions and layouts.
 - Keep login/register forms server-validated; avoid client-only validation.
+- Configure via `lib/auth/nextauth.ts` with Credentials provider and custom Drizzle adapter.
 
 **Cloudflare R2 (S3)**
 - Use `@aws-sdk/client-s3` with endpoint `https://<accountid>.r2.cloudflarestorage.com` and region `auto`.
@@ -65,12 +66,14 @@ This AGENTS.md applies to the entire repository.
 **Environment Variables**
 - Minimal set expected in `.env.local`:
   - `DATABASE_URL`
+  - `NEXTAUTH_SECRET` (generate with `openssl rand -base64 32`)
+  - `NEXTAUTH_URL` (e.g., `http://localhost:3000` for dev, production URL for prod)
   - `R2_ACCOUNT_ID`
   - `R2_ACCESS_KEY_ID`
   - `R2_SECRET_ACCESS_KEY`
   - `R2_BUCKET_NAME`
   - `R2_PUBLIC_BASE_URL`
-- `NEXT_PUBLIC_APP_URL`
+  - `NEXT_PUBLIC_APP_URL`
 - Do not introduce new env vars without discussion; prefer runtime config or defaults where possible.
 
 **Deployment (Coolify on VPS)**

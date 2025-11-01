@@ -5,9 +5,8 @@ import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { getCurrentUser } from "@/lib/auth/lucia";
+import { getCurrentUser } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 
 import "./globals.css";
@@ -63,25 +62,23 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans text-foreground">
-        <ThemeProvider>
-          <div className="flex min-h-screen flex-col">
-            <a href="#main" className="skip-link">Skip to content</a>
-            <SiteHeader
-              currentUser={
-                currentUser
-                  ? {
-                      id: currentUser.id,
-                      email: currentUser.email,
-                      handle: currentUser.profile?.handle ?? null,
-                    }
-                  : null
-              }
-            />
-            <main id="main" className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
-          <Toaster />
-        </ThemeProvider>
+        <div className="flex min-h-screen flex-col">
+          <a href="#main" className="skip-link">Skip to content</a>
+          <SiteHeader
+            currentUser={
+              currentUser
+                ? {
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    handle: currentUser.profile?.handle ?? null,
+                  }
+                : null
+            }
+          />
+          <main id="main" className="flex-1">{children}</main>
+          <SiteFooter />
+        </div>
+        <Toaster />
       </body>
     </html>
   );

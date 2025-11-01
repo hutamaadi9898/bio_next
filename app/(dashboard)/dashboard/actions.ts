@@ -26,7 +26,15 @@ function normaliseColor(color?: string | null) {
 }
 
 function ensureUrlForType(type: string) {
-  return type === "link" || type === "social" || type === "email";
+  // Require URL for types that link out
+  return (
+    type === "link" ||
+    type === "social" ||
+    type === "email" ||
+    type === "video" ||
+    type === "music" ||
+    type === "map"
+  );
 }
 
 function revalidateDashboard(_handle: string) {
@@ -71,17 +79,31 @@ export async function createCardAction(_prev: unknown, formData: FormData): Prom
 
   const nextPosition = positionResult[0]?.max ?? 0;
 
-  await db.insert(cards).values({
-    profileId: profile.id,
-    type: payload.type,
-    title: payload.title,
-    subtitle: payload.subtitle,
-    url: payload.url,
-    cols: payload.cols,
-    rows: payload.rows,
-    position: nextPosition + 1,
-    accentColor: normaliseColor(payload.accentColor),
-  });
+  try {
+    await db.insert(cards).values({
+      profileId: profile.id,
+      type: payload.type,
+      title: payload.title,
+      subtitle: payload.subtitle,
+      url: payload.url,
+      cols: payload.cols,
+      rows: payload.rows,
+      position: nextPosition + 1,
+      accentColor: normaliseColor(payload.accentColor),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("enum card_type") || message.includes("invalid input value for enum")) {
+      return {
+        success: false,
+        errors: {
+          type:
+            "Database not migrated for new card types. Please run 'pnpm db:migrate' and try again.",
+        },
+      };
+    }
+    return { success: false, errors: { form: "Failed to create card." } };
+  }
 
   revalidateDashboard(profile.handle);
   await logAuditSafe({ userId: profile.userId, action: "card.create", entity: "card", entityId: "(auto)" });
@@ -118,19 +140,33 @@ export async function updateCardAction(_prev: unknown, formData: FormData): Prom
     };
   }
 
-  await db
-    .update(cards)
-    .set({
-      title: payload.title,
-      subtitle: payload.subtitle,
-      type: payload.type,
-      url: payload.url,
-      cols: payload.cols,
-      rows: payload.rows,
-      accentColor: normaliseColor(payload.accentColor),
-      updatedAt: new Date(),
-    })
-    .where(and(eq(cards.id, payload.id), eq(cards.profileId, profile.id)));
+  try {
+    await db
+      .update(cards)
+      .set({
+        title: payload.title,
+        subtitle: payload.subtitle,
+        type: payload.type,
+        url: payload.url,
+        cols: payload.cols,
+        rows: payload.rows,
+        accentColor: normaliseColor(payload.accentColor),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(cards.id, payload.id), eq(cards.profileId, profile.id)));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("enum card_type") || message.includes("invalid input value for enum")) {
+      return {
+        success: false,
+        errors: {
+          type:
+            "Database not migrated for new card types. Please run 'pnpm db:migrate' and try again.",
+        },
+      };
+    }
+    return { success: false, errors: { form: "Failed to update card." } };
+  }
 
   revalidateDashboard(profile.handle);
   await logAuditSafe({ userId: profile.userId, action: "card.update", entity: "card", entityId: parseResult.data.id });

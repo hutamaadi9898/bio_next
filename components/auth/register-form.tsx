@@ -3,6 +3,8 @@
 import * as React from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 import { registerAction } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
@@ -14,14 +16,32 @@ import type { ActionResult } from "@/lib/actions/types";
 const initialState: ActionResult | null = null;
 
 export function RegisterForm() {
+  const router = useRouter();
   const [state, formAction] = useActionState(registerAction, initialState);
+  const [password, setPassword] = React.useState("");
 
   React.useEffect(() => {
     if (state && !state.success) {
       const message = Object.values(state.errors).join("\n");
       toast.error(message || "Unable to create account");
+    } else if (state && state.success && state.data) {
+      // Auto sign in after successful registration
+      const email = (state.data as { email: string }).email;
+      signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      }).then((result) => {
+        if (result?.error) {
+          toast.error("Account created but sign in failed. Please sign in manually.");
+          router.push("/login");
+        } else {
+          router.push("/dashboard");
+          router.refresh();
+        }
+      });
     }
-  }, [state]);
+  }, [state, password, router]);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -54,7 +74,14 @@ export function RegisterForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input id="password" name="password" type="password" required autoComplete="new-password" />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="new-password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
         {state && !state.success && state.errors.password ? (
           <p className="text-sm text-destructive">{state.errors.password}</p>
         ) : null}

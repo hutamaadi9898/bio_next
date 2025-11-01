@@ -1,6 +1,25 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
 
-import { getCurrentUser } from "@/lib/auth/lucia";
+import { db } from "@/lib/db";
+import { authOptions } from "@/lib/auth/nextauth";
+
+export const getCurrentUser = cache(async () => {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) return null;
+
+  const userId = session.user.id;
+
+  const user = await db.query.users.findFirst({
+    where: (table, { eq }) => eq(table.id, userId),
+    with: { profile: true },
+  });
+
+  if (!user) return null;
+  return { id: user.id, email: user.email, profile: user.profile };
+});
 
 /**
  * Ensures that a user is authenticated. Redirects to the login page otherwise.

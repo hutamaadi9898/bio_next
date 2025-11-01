@@ -1,37 +1,54 @@
 "use client";
 
 import * as React from "react";
-import { useActionState } from "react";
 import Link from "next/link";
-import { useFormStatus } from "react-dom";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-import { loginAction } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
-import type { ActionResult } from "@/lib/actions/types";
-
-const initialState: ActionResult | null = null;
 
 export function LoginForm() {
-  const [state, formAction] = useActionState(loginAction, initialState);
+  const router = useRouter();
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    if (state && !state.success) {
-      const message = Object.values(state.errors).join("\n");
-      toast.error(message || "Unable to sign in");
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error("Invalid email or password");
+        setIsLoading(false);
+        return;
+      }
+
+      // Successful login
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+      setIsLoading(false);
     }
-  }, [state]);
+  }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" required autoComplete="email" />
-        {state && !state.success && state.errors.email ? (
-          <p className="text-sm text-destructive">{state.errors.email}</p>
-        ) : null}
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -41,11 +58,10 @@ export function LoginForm() {
           </Link>
         </div>
         <Input id="password" name="password" type="password" required autoComplete="current-password" />
-        {state && !state.success && state.errors.password ? (
-          <p className="text-sm text-destructive">{state.errors.password}</p>
-        ) : null}
       </div>
-      <SubmitButton label="Sign in" />
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Signing in..." : "Sign in"}
+      </Button>
       <p className="text-sm text-muted-foreground">
         Need an account?{" "}
         <Link href="/register" className="font-medium text-primary">
@@ -53,14 +69,5 @@ export function LoginForm() {
         </Link>
       </p>
     </form>
-  );
-}
-
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "Working..." : label}
-    </Button>
   );
 }

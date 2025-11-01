@@ -1,6 +1,16 @@
 import { z } from "zod";
 
-export const cardTypeValues = ["link", "social", "email", "text"] as const;
+export const cardTypeValues = [
+  "link",
+  "social",
+  "email",
+  "text",
+  // Phase 3
+  "video",
+  "music",
+  "map",
+  "divider",
+] as const;
 
 export const cardSchema = z.object({
   id: z.string().uuid(),
@@ -14,11 +24,11 @@ export const cardSchema = z.object({
 });
 
 export const createCardSchema = cardSchema.omit({ id: true }).extend({
-  data: z.record(z.any()).optional(),
+  data: z.record(z.string(), z.any()).optional(),
 });
 
 export const updateCardSchema = cardSchema.extend({
-  data: z.record(z.any()).optional(),
+  data: z.record(z.string(), z.any()).optional(),
 });
 
 export const deleteCardSchema = z.object({
