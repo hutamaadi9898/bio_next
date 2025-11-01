@@ -168,8 +168,14 @@ export async function reorderCardAction(cardId: string, direction: "up" | "down"
   if (!neighbour) return;
 
   await db.transaction(async (tx) => {
-    // Use a temporary position to avoid violating the unique (profile_id, position) constraint
-    await tx.update(cards).set({ position: 0 }).where(eq(cards.id, current.id));
+    // Use a temporary out-of-band position to avoid violating the unique (profile_id, position) constraint
+    const [{ max: maxPos }] = await tx
+      .select({ max: sql<number>`coalesce(max(${cards.position}), 0)` })
+      .from(cards)
+      .where(eq(cards.profileId, profile.id));
+    const tempPos = (maxPos ?? 0) + 1;
+
+    await tx.update(cards).set({ position: tempPos }).where(eq(cards.id, current.id));
     await tx.update(cards).set({ position: current.position }).where(eq(cards.id, neighbour.id));
     await tx.update(cards).set({ position: neighbour.position }).where(eq(cards.id, current.id));
   });
