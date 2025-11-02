@@ -31,8 +31,13 @@ export function ThemeControls() {
     }
   }, [themeState, layoutState, themeCtx, currentPreset]);
 
+  const accent = themeCtx?.tokens.accent ?? "#2563eb";
   return (
-    <div className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
+    <div
+      className="relative space-y-4 rounded-2xl border bg-card/70 p-5 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+      style={{ boxShadow: `inset 0 0 0 1px ${accent}20`, backgroundImage: `linear-gradient(135deg, ${accent}10, transparent 70%)` }}
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.03] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, ${accent}22 0 10px, transparent 12px 22px)` }} />
       <div>
         <h2 className="text-lg font-semibold">Theme & Layout</h2>
         <p className="text-sm text-muted-foreground">Pick a preset and grid template.</p>

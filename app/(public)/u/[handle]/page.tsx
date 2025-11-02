@@ -82,8 +82,11 @@ export default async function PublicProfilePage({ params }: PageParams) {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-12 py-16">
       <Card
-        className="overflow-hidden border-none bg-gradient-to-br from-background via-background to-muted shadow-none"
-        style={{ boxShadow: `inset 0 0 0 1px ${accent}20` }}
+        className="overflow-hidden border-none bg-background/60 shadow-none backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+        style={{
+          boxShadow: `inset 0 0 0 1px ${accent}20`,
+          backgroundImage: `linear-gradient(135deg, ${accent}14, transparent 60%)`,
+        }}
       >
         {profile.bannerAsset?.url ? (
           <div className="relative h-32 w-full border-b bg-muted sm:h-40">
@@ -101,7 +104,7 @@ export default async function PublicProfilePage({ params }: PageParams) {
         <div className={hasBanner ? "relative z-20 -mt-12 flex justify-center" : "mt-6 flex justify-center"}>
           <div
             className="h-24 w-24 overflow-hidden rounded-full border-4 border-background bg-muted shadow-md"
-            style={{ boxShadow: `0 0 0 2px ${accent}, 0 10px 24px -12px ${accent}66` }}
+            style={{ boxShadow: `0 0 0 2px ${accent}, 0 12px 28px -14px ${accent}66` }}
           >
             {profile.avatarAsset?.url ? (
               <img src={profile.avatarAsset.url} alt={`${profile.displayName} avatar`} className="h-full w-full object-cover" />
@@ -124,8 +127,8 @@ export default async function PublicProfilePage({ params }: PageParams) {
         </CardHeader>
       </Card>
       <div
-        className="rounded-3xl border bg-card p-6 shadow-sm"
-        style={{ boxShadow: `0 20px 45px -15px ${accent}55` }}
+        className="rounded-3xl border bg-card/70 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+        style={{ boxShadow: `0 20px 45px -15px ${accent}55`, backgroundImage: `linear-gradient(135deg, ${accent}10, transparent 70%)` }}
       >
         <ErrorBoundary>
           <BentoGrid

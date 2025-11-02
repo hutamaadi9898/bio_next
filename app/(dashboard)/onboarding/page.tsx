@@ -17,7 +17,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <Card>
+      <Card className="bg-card/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <CardHeader>
           <CardTitle>Get started</CardTitle>
           <CardDescription>Choose a preset, add your photo, and drop in a few links.</CardDescription>
@@ -37,7 +37,7 @@ function MediaStep() {
     <section className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold">2. Add your avatar and banner</h2>
-        <p className="text-sm text-muted-foreground">Images help your page feel personal. Optional but recommended.</p>
+        <p className="text-sm text-muted-foreground">Images help your page feel personal. Optional — you can skip for now.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <AvatarUploader />

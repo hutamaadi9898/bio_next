@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/sonner";
 import type { ActionResult } from "@/lib/actions/types";
+import { useThemeContext } from "@/components/theme/theme-context";
 
 type ProfileFormProps = {
   initialValues: {
@@ -26,6 +27,8 @@ type ProfileFormProps = {
 const initialState: ActionResult | null = null;
 
 export function ProfileForm({ initialValues }: ProfileFormProps) {
+  const theme = useThemeContext();
+  const accent = theme?.tokens.accent ?? "#2563eb";
   const [state, formAction] = useActionState(updateProfileAction, initialState);
   const [accentColor, setAccentColor] = React.useState(initialValues.accentColor ?? "#2563eb");
   const [avatarUrl, setAvatarUrl] = React.useState(initialValues.avatarUrl ?? null);
@@ -41,7 +44,11 @@ export function ProfileForm({ initialValues }: ProfileFormProps) {
   }, [state]);
 
   return (
-    <div className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
+    <div
+      className="relative space-y-4 rounded-2xl border bg-card/70 p-5 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+      style={{ boxShadow: `inset 0 0 0 1px ${accent}20`, backgroundImage: `linear-gradient(135deg, ${accent}10, transparent 70%)` }}
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.03] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, ${accent}22 0 10px, transparent 12px 22px)` }} />
       <div>
         <h2 className="text-lg font-semibold">Profile</h2>
         <p className="text-sm text-muted-foreground">Control how your public page appears.</p>

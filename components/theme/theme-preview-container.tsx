@@ -16,14 +16,21 @@ export function ThemePreviewContainer({ className, children }: Props) {
   const accent = theme?.tokens.accent ?? "#2563eb";
   return (
     <div
-      className={cn("rounded-3xl border bg-card p-6 shadow-sm", className)}
-      // Light accent hints; maintain AA by avoiding foreground color changes
+      className={cn(
+        "relative rounded-3xl border bg-card/70 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur",
+        className,
+      )}
       style={{
-        boxShadow: `inset 0 0 0 1px ${accent}20, 0 20px 45px -15px ${accent}40`,
+        boxShadow: `inset 0 0 0 1px ${accent}20, 0 20px 45px -15px ${accent}3a`,
+        backgroundImage: `linear-gradient(135deg, ${accent}10, transparent 70%)`,
       }}
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04] animate-stripe"
+        style={{ backgroundImage: `repeating-linear-gradient(45deg, ${accent}22 0 10px, transparent 12px 22px)` }}
+      />
       {children}
     </div>
   );
 }
-

@@ -66,7 +66,7 @@ export function BentoGrid({ items, className, typography }: BentoGridProps) {
               exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24 }}
               transition={reduceMotion ? { duration: 0 } : { type: "spring", damping: 18, stiffness: 220 }}
               className={cn(
-                "group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-card p-5 text-card-foreground shadow-sm",
+                "group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-card/70 p-5 text-card-foreground shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur",
                 // Micro-interactions: hover lift, tap scale, focus ring
                 "transition-transform will-change-transform hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] focus-within:ring-2 focus-within:ring-primary/40",
                 item.accentColor ? "border-transparent" : undefined,
@@ -74,11 +74,19 @@ export function BentoGrid({ items, className, typography }: BentoGridProps) {
               style={{
                 gridColumn: `span ${item.cols} / span ${item.cols}`,
                 gridRow: `span ${item.rows} / span ${item.rows}`,
-                boxShadow: item.accentColor
-                  ? `0 0 0 1px ${item.accentColor} inset`
+                boxShadow: item.accentColor ? `0 0 0 1px ${item.accentColor} inset` : undefined,
+                backgroundImage: (item.accentColor || themeCtx?.tokens.accent)
+                  ? `linear-gradient(135deg, ${(item.accentColor ?? themeCtx?.tokens.accent)!}10, transparent 70%)`
                   : undefined,
               }}
             >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.03] animate-stripe"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(45deg, ${(item.accentColor ?? themeCtx?.tokens.accent) ?? "#2563eb"}22 0 10px, transparent 12px 22px)`,
+                }}
+              />
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-2">
                   <p className={cn("text-muted-foreground", labelClass)}>

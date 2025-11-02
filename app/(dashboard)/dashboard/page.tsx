@@ -65,7 +65,10 @@ export default async function DashboardPage() {
             }}
           />
           <ThemeControls />
-          <ScrollArea className="h-[520px] rounded-2xl border bg-card p-4">
+          <ScrollArea
+            className="h-[520px] rounded-2xl border bg-card/70 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+            style={{ boxShadow: `inset 0 0 0 1px ${theme.palette.accent}20`, backgroundImage: `linear-gradient(135deg, ${theme.palette.accent}10, transparent 70%)` }}
+          >
             <CardList cards={cardRecords} />
           </ScrollArea>
         </aside>

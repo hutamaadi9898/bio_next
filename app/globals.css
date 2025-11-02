@@ -171,3 +171,17 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Subtle animated stripes utility for accent surfaces */
+@keyframes stripe {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.animate-stripe {
+  animation: stripe 12s linear infinite;
+}

@@ -5,6 +5,7 @@ import { publishProfileAction, unpublishProfileAction } from "@/app/(dashboard)/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Profile } from "@/drizzle/schema";
+import { resolveTheme } from "@/lib/themes";
 
 type DashboardHeaderProps = {
   profile: Profile;
@@ -13,8 +14,14 @@ type DashboardHeaderProps = {
 };
 
 export function DashboardHeader({ profile, user, cardCount }: DashboardHeaderProps) {
+  const theme = resolveTheme(profile.theme);
+  const accent = theme.palette.accent ?? "#2563eb";
   return (
-    <div className="flex flex-col gap-4 rounded-3xl border bg-card p-6 shadow-sm">
+    <div
+      className="relative flex flex-col gap-4 overflow-hidden rounded-3xl border bg-card/70 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+      style={{ boxShadow: `inset 0 0 0 1px ${accent}20`, backgroundImage: `linear-gradient(135deg, ${accent}12, transparent 60%)` }}
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, ${accent}22 0 10px, transparent 12px 22px)` }} />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Dashboard</h1>

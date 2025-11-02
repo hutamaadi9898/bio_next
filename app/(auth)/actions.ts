@@ -106,3 +106,15 @@ export async function logoutAction() {
   await logAuditSafe({ userId: null, action: "logout", entity: "user", entityId: null });
   redirect("/api/auth/signout");
 }
+
+// Lightweight handle availability check for register form.
+export async function checkHandleAvailabilityAction(handleRaw: string): Promise<ActionResult<{ available: boolean }>> {
+  const handle = String(handleRaw ?? "").trim().toLowerCase();
+  // Reuse constraints from register schema
+  const valid = /^[a-z0-9_-]{3,25}$/.test(handle);
+  if (!valid) {
+    return { success: false, errors: { handle: "3–25 chars, letters/numbers/_/-" } };
+  }
+  const existing = await db.query.profiles.findFirst({ where: (t, { eq }) => eq(t.handle, handle) });
+  return existing ? { success: true, data: { available: false } } : { success: true, data: { available: true } };
+}

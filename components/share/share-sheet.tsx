@@ -39,7 +39,7 @@ export function ShareSheet({ open, onOpenChange, url, title = "Check out my Biog
     return url;
   }, [url]);
 
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrlAbs)}`;
+  const qrSrc = `/api/qr?size=200&data=${encodeURIComponent(shareUrlAbs)}`;
 
   const twitter = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrlAbs)}&text=${encodeURIComponent(title)}`;
   const linkedin = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrlAbs)}`;
@@ -74,4 +74,3 @@ export function ShareSheet({ open, onOpenChange, url, title = "Check out my Biog
     </Dialog>
   );
 }
-

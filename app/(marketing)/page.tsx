@@ -67,7 +67,11 @@ export default function MarketingPage() {
           <p className="text-sm text-muted-foreground">Free plan available. Upgrade anytime.</p>
         </div>
 
-        <div className="rounded-3xl border bg-gradient-to-br from-background via-background to-muted p-6 shadow-xl">
+        <div
+          className="relative overflow-hidden rounded-3xl border bg-card/70 p-6 shadow-xl backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+          style={{ boxShadow: `inset 0 0 0 1px #2563eb20`, backgroundImage: `linear-gradient(135deg, #2563eb10, transparent 70%)` }}
+        >
+          <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.03] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, #2563eb22 0 10px, transparent 12px 22px)` }} />
           <ErrorBoundary>
             <BentoGrid items={previewCards} />
           </ErrorBoundary>
@@ -83,7 +87,12 @@ export default function MarketingPage() {
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           {featureCards.map((feature) => (
-            <div key={feature.title} className="rounded-2xl border bg-card p-6 shadow-sm">
+            <div
+              key={feature.title}
+              className="relative overflow-hidden rounded-2xl border bg-card/70 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+              style={{ boxShadow: `inset 0 0 0 1px #2563eb20`, backgroundImage: `linear-gradient(135deg, #2563eb10, transparent 70%)` }}
+            >
+              <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.025] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, #2563eb22 0 10px, transparent 12px 22px)` }} />
               <feature.icon className="h-8 w-8 text-primary" />
               <h3 className="mt-4 text-xl font-semibold">{feature.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{feature.description}</p>
@@ -92,13 +101,14 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      <section id="pricing" className="container space-y-10 rounded-3xl border bg-muted/40 p-12">
+      <section id="pricing" className="container space-y-10 rounded-3xl border bg-card/70 p-12 backdrop-blur supports-[backdrop-filter]:backdrop-blur" style={{ boxShadow: `inset 0 0 0 1px #2563eb20`, backgroundImage: `linear-gradient(135deg, #2563eb0f, transparent 70%)` }}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight">Pricing for creators</h2>
           <p className="mt-3 text-muted-foreground">Start free. Unlock advanced customization and analytics as you grow.</p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border bg-background p-8 shadow-sm" aria-label="Free plan">
+          <div className="relative overflow-hidden rounded-2xl border bg-background/80 p-8 shadow-sm">
+            <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.02] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, #2563eb22 0 10px, transparent 12px 22px)` }} />
             <p className="text-xl font-semibold">Free</p>
             <p className="mt-1 text-4xl font-bold">$0</p>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -110,7 +120,8 @@ export default function MarketingPage() {
               <Link href="/register" aria-label="Start free">Start free</Link>
             </Button>
           </div>
-          <div className="rounded-2xl border bg-background p-8 shadow-sm ring-1 ring-primary/20" aria-label="Pro plan">
+          <div className="relative overflow-hidden rounded-2xl border bg-background/80 p-8 shadow-sm ring-1 ring-primary/20">
+            <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.02] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, #2563eb22 0 10px, transparent 12px 22px)` }} />
             <p className="text-xl font-semibold">Pro</p>
             <p className="mt-1 text-4xl font-bold">$5</p>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -122,7 +133,8 @@ export default function MarketingPage() {
               <Link href="/register" aria-label="Choose Pro">Choose Pro</Link>
             </Button>
           </div>
-          <div className="rounded-2xl border bg-background p-8 shadow-sm" aria-label="Max plan">
+          <div className="relative overflow-hidden rounded-2xl border bg-background/80 p-8 shadow-sm">
+            <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.02] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, #2563eb22 0 10px, transparent 12px 22px)` }} />
             <p className="text-xl font-semibold">Max</p>
             <p className="mt-1 text-4xl font-bold">$20</p>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -139,7 +151,12 @@ export default function MarketingPage() {
 
       <section id="faq" className="container grid gap-10 md:grid-cols-2">
         {faqs.map((faq) => (
-          <div key={faq.question} className="rounded-xl border bg-card p-6 shadow-sm">
+          <div
+            key={faq.question}
+            className="relative overflow-hidden rounded-xl border bg-card/70 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+            style={{ boxShadow: `inset 0 0 0 1px #2563eb20`, backgroundImage: `linear-gradient(135deg, #2563eb10, transparent 70%)` }}
+          >
+            <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.02] animate-stripe" style={{ backgroundImage: `repeating-linear-gradient(45deg, #2563eb22 0 10px, transparent 12px 22px)` }} />
             <h3 className="text-lg font-semibold">{faq.question}</h3>
             <p className="mt-2 text-sm text-muted-foreground">{faq.answer}</p>
           </div>

@@ -24,7 +24,8 @@ import { applyTemplateToCards } from "@/lib/templates";
 import { uploadImageToR2 } from "@/lib/storage/r2";
 import { logAuditSafe } from "@/lib/audit";
 import { log } from "@/lib/log";
-import { resolveTheme, extractAutoPaletteFromImage } from "@/lib/themes";
+import { resolveTheme } from "@/lib/themes";
+import { extractAutoPaletteFromImage } from "@/lib/themes-server";
 
 function normaliseColor(color?: string | null) {
   if (!color) return null;
