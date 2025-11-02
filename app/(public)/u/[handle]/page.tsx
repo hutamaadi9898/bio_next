@@ -6,8 +6,10 @@ import { BentoGrid, type BentoCardData } from "@/components/bento/bento-grid";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PublicCardLink } from "@/components/public/card-link";
 import { Badge } from "@/components/ui/badge";
+import { PublicShareButton } from "@/components/public/public-share";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
+import { resolveTheme } from "@/lib/themes";
 import { extractYouTubeId, toSpotifyEmbedUrl } from "@/lib/utils";
 import { YouTubeLite } from "@/components/public/youtube-lite";
 import { SpotifyEmbed } from "@/components/public/spotify-embed";
@@ -21,6 +23,7 @@ const getProfile = cache(async (handle: string) => {
         orderBy: (table, { asc }) => asc(table.position),
       },
       avatarAsset: true,
+      bannerAsset: true,
     },
   });
   return profile;
@@ -72,17 +75,34 @@ export default async function PublicProfilePage({ params }: PageParams) {
   }
 
   const bentoItems = profile.cards.map((card) => mapCard(card));
-  const theme = (profile.theme as { accent?: string; background?: string } | null) ?? {};
-  const accent = theme.accent ?? "#2563eb";
+  const resolved = resolveTheme(profile.theme);
+  const accent = resolved.palette.accent ?? "#2563eb";
+  const hasBanner = Boolean(profile.bannerAsset?.url);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-12 py-16">
       <Card
-        className="border-none bg-gradient-to-br from-background via-background to-muted shadow-none"
+        className="overflow-hidden border-none bg-gradient-to-br from-background via-background to-muted shadow-none"
         style={{ boxShadow: `inset 0 0 0 1px ${accent}20` }}
       >
-        <CardHeader className="flex flex-col items-center gap-4 text-center">
-          <div className="h-24 w-24 overflow-hidden rounded-full border bg-muted">
+        {profile.bannerAsset?.url ? (
+          <div className="relative h-32 w-full border-b bg-muted sm:h-40">
+            <img
+              src={profile.bannerAsset.url}
+              alt={`${profile.displayName} banner`}
+              className="z-0 h-full w-full object-cover"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-background/90 to-transparent"
+            />
+          </div>
+        ) : null}
+        <div className={hasBanner ? "relative z-20 -mt-12 flex justify-center" : "mt-6 flex justify-center"}>
+          <div
+            className="h-24 w-24 overflow-hidden rounded-full border-4 border-background bg-muted shadow-md"
+            style={{ boxShadow: `0 0 0 2px ${accent}, 0 10px 24px -12px ${accent}66` }}
+          >
             {profile.avatarAsset?.url ? (
               <img src={profile.avatarAsset.url} alt={`${profile.displayName} avatar`} className="h-full w-full object-cover" />
             ) : (
@@ -91,11 +111,16 @@ export default async function PublicProfilePage({ params }: PageParams) {
               </div>
             )}
           </div>
+        </div>
+        <CardHeader className="flex flex-col items-center gap-4 text-center">
           <Badge variant="secondary" style={{ backgroundColor: `${accent}1a`, color: accent }}>
             @{profile.handle}
           </Badge>
           <CardTitle className="text-4xl font-semibold">{profile.displayName}</CardTitle>
           {profile.bio ? <CardDescription className="max-w-2xl text-base">{profile.bio}</CardDescription> : null}
+          <div className="mt-2">
+            <PublicShareButton url={`/u/${profile.handle}`} title={`${profile.displayName} | Biogrid`} />
+          </div>
         </CardHeader>
       </Card>
       <div
@@ -103,7 +128,11 @@ export default async function PublicProfilePage({ params }: PageParams) {
         style={{ boxShadow: `0 20px 45px -15px ${accent}55` }}
       >
         <ErrorBoundary>
-          <BentoGrid items={bentoItems} className="min-h-[420px]" />
+          <BentoGrid
+            items={bentoItems}
+            className="min-h-[420px]"
+            typography={{ label: resolved.typography.label, title: resolved.typography.title }}
+          />
         </ErrorBoundary>
       </div>
     </div>

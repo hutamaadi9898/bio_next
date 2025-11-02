@@ -15,10 +15,16 @@ import {
   profileUpdateSchema,
   reorderCardSchema,
   updateCardSchema,
+  applyThemePresetSchema,
+  applyLayoutTemplateSchema,
+  type ThemePreset,
 } from "@/lib/validation/cards";
+import { THEME_PRESETS } from "@/lib/themes";
+import { applyTemplateToCards } from "@/lib/templates";
 import { uploadImageToR2 } from "@/lib/storage/r2";
 import { logAuditSafe } from "@/lib/audit";
 import { log } from "@/lib/log";
+import { resolveTheme, extractAutoPaletteFromImage } from "@/lib/themes";
 
 function normaliseColor(color?: string | null) {
   if (!color) return null;
@@ -258,6 +264,7 @@ export async function updateProfileAction(_prev: unknown, formData: FormData): P
       theme: {
         accent: normaliseColor(payload.accentColor) ?? existingTheme.accent ?? "#2563eb",
         background: existingTheme.background ?? "#0f172a",
+        preset: (existingTheme as { preset?: ThemePreset }).preset ?? "minimal",
       },
       updatedAt: new Date(),
     })
@@ -265,6 +272,72 @@ export async function updateProfileAction(_prev: unknown, formData: FormData): P
 
   revalidateDashboard(profile.handle);
   await logAuditSafe({ userId: profile.userId, action: "profile.update", entity: "profile", entityId: profile.id });
+  return { success: true };
+}
+
+export async function applyThemePresetAction(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const { profile } = await requireProfile();
+  const parsed = applyThemePresetSchema.safeParse({ preset: formData.get("preset") });
+  if (!parsed.success) {
+    return { success: false, errors: { preset: "Invalid theme preset" } };
+  }
+
+  const preset = parsed.data.preset;
+  const next = THEME_PRESETS[preset];
+
+  await db
+    .update(profiles)
+    .set({
+      theme: {
+        preset: next.preset,
+        accent: next.palette.accent,
+        background: next.palette.background,
+      },
+      updatedAt: new Date(),
+    })
+    .where(eq(profiles.id, profile.id));
+
+  revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "profile.theme_preset", entity: "profile", entityId: profile.id });
+  return { success: true };
+}
+
+export async function applyLayoutTemplateAction(_prev: unknown, formData: FormData): Promise<ActionResult> {
+  const { profile } = await requireProfile();
+  const parsed = applyLayoutTemplateSchema.safeParse({ template: formData.get("template") });
+  if (!parsed.success) {
+    return { success: false, errors: { template: "Invalid template" } };
+  }
+  const template = parsed.data.template;
+
+  const currentCards = await db.query.cards.findMany({
+    where: (t, { eq }) => eq(t.profileId, profile.id),
+    orderBy: (t, { asc }) => asc(t.position),
+  });
+
+  if (currentCards.length === 0) {
+    return { success: true };
+  }
+
+  const updates = applyTemplateToCards(template, currentCards);
+  await db.transaction(async (tx) => {
+    // Phase 1: Move all to temporary out-of-band positions to avoid unique position conflicts
+    const tempBase = (currentCards.length + 1) * 10;
+    for (let i = 0; i < updates.length; i++) {
+      const u = updates[i]!;
+      await tx.update(cards).set({ position: tempBase + i + 1 }).where(eq(cards.id, u.id));
+    }
+    // Phase 2: Apply target sizes and final positions
+    for (const u of updates) {
+      await tx
+        .update(cards)
+        .set({ cols: u.cols, rows: u.rows, position: u.position, updatedAt: new Date() })
+        .where(eq(cards.id, u.id));
+    }
+  });
+
+  revalidateDashboard(profile.handle);
+  await logAuditSafe({ userId: profile.userId, action: "profile.layout_template", entity: "profile", entityId: profile.id });
   return { success: true };
 }
 
@@ -294,9 +367,20 @@ export async function uploadAvatarAction(_prev: unknown, formData: FormData): Pr
       throw new Error("Failed to persist uploaded asset");
     }
 
-    await db
-      .update(profiles)
-      .set({ avatarAssetId: asset.id, updatedAt: new Date() })
+    // Auto-palette: only override accent if user hasn't customized it away from preset
+    const current = resolveTheme(profile.theme);
+    const auto = await extractAutoPaletteFromImage(asset.url, current.palette);
+    const storedAccent = normaliseColor((profile.theme as { accent?: string } | null)?.accent ?? null);
+    const defaultAccent = normaliseColor((THEME_PRESETS[current.preset]?.palette.accent) ?? current.palette.accent);
+    const accentUnchanged = storedAccent === defaultAccent;
+
+    // Always set avatar; conditionally update theme accent
+    await db.update(profiles)
+      .set({
+        avatarAssetId: asset.id,
+        ...(accentUnchanged ? { theme: { preset: current.preset, accent: auto.accent, background: current.palette.background } } : {}),
+        updatedAt: new Date(),
+      } as any)
       .where(eq(profiles.id, profile.id));
 
     revalidateDashboard(profile.handle);
@@ -304,6 +388,55 @@ export async function uploadAvatarAction(_prev: unknown, formData: FormData): Pr
   } catch (error) {
     log({ msg: "avatar_upload_failed", level: "error", error: error instanceof Error ? error.message : String(error) });
     return { success: false, errors: { avatar: error instanceof Error ? error.message : "Upload failed" } };
+  }
+}
+
+export async function uploadBannerAction(_prev: unknown, formData: FormData): Promise<ActionResult<{ url: string }>> {
+  const { user, profile } = await requireProfile();
+  const file = formData.get("banner");
+
+  if (!(file instanceof File)) {
+    return { success: false, errors: { banner: "Please choose an image" } };
+  }
+
+  try {
+    const upload = await uploadImageToR2(user.id, file);
+
+    const [asset] = await db
+      .insert(assets)
+      .values({
+        userId: user.id,
+        bucket: env.R2_BUCKET_NAME,
+        key: upload.key,
+        contentType: upload.contentType,
+        url: upload.url,
+        sizeBytes: upload.sizeBytes,
+      })
+      .returning({ id: assets.id, url: assets.url });
+    if (!asset) {
+      throw new Error("Failed to persist uploaded asset");
+    }
+
+    const current = resolveTheme(profile.theme);
+    const auto = await extractAutoPaletteFromImage(asset.url, current.palette);
+    const storedAccent = normaliseColor((profile.theme as { accent?: string } | null)?.accent ?? null);
+    const defaultAccent = normaliseColor((THEME_PRESETS[current.preset]?.palette.accent) ?? current.palette.accent);
+    const accentUnchanged = storedAccent === defaultAccent;
+
+    await db
+      .update(profiles)
+      .set({
+        bannerAssetId: asset.id,
+        ...(accentUnchanged ? { theme: { preset: current.preset, accent: auto.accent, background: current.palette.background } } : {}),
+        updatedAt: new Date(),
+      } as any)
+      .where(eq(profiles.id, profile.id));
+
+    revalidateDashboard(profile.handle);
+    return { success: true, data: { url: asset.url } };
+  } catch (error) {
+    log({ msg: "banner_upload_failed", level: "error", error: error instanceof Error ? error.message : String(error) });
+    return { success: false, errors: { banner: error instanceof Error ? error.message : "Upload failed" } };
   }
 }
 

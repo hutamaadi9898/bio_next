@@ -58,15 +58,15 @@ Constraints
 
 Goal: replicate Bento’s *rich, asymmetric, aesthetic-first* feel through presets — not deep customization.
 
-- [ ] Theme presets (`theme_json` variants: Minimal, Studio, Neon, Pastel)
-- [ ] Asymmetric grid templates (“Hero + 2”, “Hero + Masonry”, “Cards Only”)
-- [ ] Typographic tokens (display/title/label) unified across tiles
-- [ ] Micro-interactions: hover lift, tap scale, focus rings
-- [ ] Auto-palette from avatar/hero image (server color extraction) [dep]
-- [ ] Mobile thumb-zone alignment (CTA placement)
+- [x] Theme presets (`theme_json` variants: Minimal, Studio, Neon, Pastel)
+- [x] Asymmetric grid templates (“Hero + 2”, “Hero + Masonry”, “Cards Only”)
+- [x] Typographic tokens (display/title/label) unified across tiles
+- [x] Micro-interactions: hover lift, tap scale, focus rings
+- [x] Auto-palette from avatar/hero image (server color extraction) [dep]
+- [x] Mobile thumb-zone alignment (CTA placement)
 
 **Acceptance**
-- [ ] Preset switch changes layout/palette/typography instantly
+- [x] Preset switch changes layout/palette/typography instantly
 - [ ] All presets meet AA contrast
 
 ---

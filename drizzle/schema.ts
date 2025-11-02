@@ -81,7 +81,13 @@ export const profiles = pgTable(
     handle: text("handle").notNull().unique(),
     displayName: text("display_name").notNull(),
     bio: text("bio"),
-    theme: jsonb("theme").$type<{ accent: string; background: string }>().default({ accent: "#2563eb", background: "#0f172a" }),
+    // Theme JSON: we keep DB default as-is for compatibility, but widen TS type
+    // to support Phase 3 presets without requiring a migration.
+    theme: jsonb("theme").$type<{
+      preset?: "minimal" | "studio" | "neon" | "pastel";
+      accent?: string;
+      background?: string;
+    }>().default({ accent: "#2563eb", background: "#0f172a" }),
     avatarAssetId: uuid("avatar_asset_id").references(() => assets.id, { onDelete: "set null" }),
     bannerAssetId: uuid("banner_asset_id").references(() => assets.id, { onDelete: "set null" }),
     clicks: integer("clicks").default(0).notNull(),

@@ -4,6 +4,7 @@ import * as React from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
+import { useThemeContext } from "@/components/theme/theme-context";
 
 export type BentoCardType =
   | "link"
@@ -33,6 +34,7 @@ export type BentoCardData = {
 export type BentoGridProps = {
   items: BentoCardData[];
   className?: string;
+  typography?: { label: string; title: string };
 };
 
 /**
@@ -40,8 +42,11 @@ export type BentoGridProps = {
  * dashboard/public views. Passing LayoutGroup keys keeps reorder animations
  * fluid when cards move between positions.
  */
-export function BentoGrid({ items, className }: BentoGridProps) {
+export function BentoGrid({ items, className, typography }: BentoGridProps) {
   const reduceMotion = useReducedMotion();
+  const themeCtx = useThemeContext();
+  const labelClass = themeCtx?.tokens.typography.label ?? typography?.label ?? "text-xs uppercase tracking-widest";
+  const titleClass = themeCtx?.tokens.typography.title ?? typography?.title ?? "text-lg font-semibold leading-tight sm:text-xl";
   return (
     <LayoutGroup>
       <div
@@ -62,6 +67,8 @@ export function BentoGrid({ items, className }: BentoGridProps) {
               transition={reduceMotion ? { duration: 0 } : { type: "spring", damping: 18, stiffness: 220 }}
               className={cn(
                 "group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-card p-5 text-card-foreground shadow-sm",
+                // Micro-interactions: hover lift, tap scale, focus ring
+                "transition-transform will-change-transform hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] focus-within:ring-2 focus-within:ring-primary/40",
                 item.accentColor ? "border-transparent" : undefined,
               )}
               style={{
@@ -74,10 +81,10 @@ export function BentoGrid({ items, className }: BentoGridProps) {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  <p className={cn("text-muted-foreground", labelClass)}>
                     {item.type}
                   </p>
-                  <h3 className="text-lg font-semibold leading-tight sm:text-xl">
+                  <h3 className={cn(titleClass)}> 
                     {item.title}
                   </h3>
                   {item.subtitle ? (

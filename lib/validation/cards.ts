@@ -46,6 +46,19 @@ export const profileUpdateSchema = z.object({
   accentColor: z.string().regex(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i).optional().nullable(),
 });
 
+// Phase 3 — Themes & Layout Templates
+export const themePresetValues = ["minimal", "studio", "neon", "pastel"] as const;
+export const applyThemePresetSchema = z.object({
+  preset: z.enum(themePresetValues),
+});
+
+export const layoutTemplateValues = ["hero_2", "hero_masonry", "cards_only"] as const;
+export const applyLayoutTemplateSchema = z.object({
+  template: z.enum(layoutTemplateValues),
+});
+
 export type CreateCardInput = z.infer<typeof createCardSchema>;
 export type UpdateCardInput = z.infer<typeof updateCardSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+export type ThemePreset = (typeof themePresetValues)[number];
+export type LayoutTemplate = (typeof layoutTemplateValues)[number];

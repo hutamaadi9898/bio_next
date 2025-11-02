@@ -31,8 +31,14 @@ export function PublicCardLink({ cardId, href, label = "Open", newTab = true }: 
   }, [cardId]);
 
   return (
-    <Button asChild variant="secondary" disabled={isPending} className="w-full">
-      <a href={href} onClick={handleClick} target={newTab ? "_blank" : undefined} rel={newTab ? "noreferrer" : undefined}>
+    <Button asChild variant="secondary" disabled={isPending} className="w-full sm:w-fit sm:ml-auto">
+      <a
+        href={href}
+        onClick={handleClick}
+        target={newTab ? "_blank" : undefined}
+        rel={newTab ? "noreferrer" : undefined}
+        aria-label={label}
+      >
         {isPending ? "Loading..." : label}
       </a>
     </Button>

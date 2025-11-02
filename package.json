@@ -29,6 +29,7 @@
     "drizzle-orm": "^0.44.7",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.552.0",
+    "node-vibrant": "^3.2.1",
     "next": "^16.0.1",
     "pg": "^8.16.3",
     "react": "19.2.0",

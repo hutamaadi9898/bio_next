@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { updateProfileAction } from "@/app/(dashboard)/dashboard/actions";
-import { uploadAvatarAction } from "@/app/(dashboard)/dashboard/actions";
+import { uploadAvatarAction, uploadBannerAction } from "@/app/(dashboard)/dashboard/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ type ProfileFormProps = {
     bio: string;
     accentColor: string;
     avatarUrl?: string | null;
+    bannerUrl?: string | null;
   };
 };
 
@@ -28,6 +29,7 @@ export function ProfileForm({ initialValues }: ProfileFormProps) {
   const [state, formAction] = useActionState(updateProfileAction, initialState);
   const [accentColor, setAccentColor] = React.useState(initialValues.accentColor ?? "#2563eb");
   const [avatarUrl, setAvatarUrl] = React.useState(initialValues.avatarUrl ?? null);
+  const [bannerUrl, setBannerUrl] = React.useState(initialValues.bannerUrl ?? null);
 
   React.useEffect(() => {
     if (state?.success) {
@@ -45,6 +47,7 @@ export function ProfileForm({ initialValues }: ProfileFormProps) {
         <p className="text-sm text-muted-foreground">Control how your public page appears.</p>
       </div>
       <AvatarUploader avatarUrl={avatarUrl} onUploaded={setAvatarUrl} />
+      <BannerUploader bannerUrl={bannerUrl} onUploaded={setBannerUrl} />
       <form action={formAction} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="displayName">Display name</Label>
@@ -136,6 +139,58 @@ function AvatarUploader({ avatarUrl, onUploaded }: AvatarUploaderProps) {
 }
 
 function AvatarSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="outline" disabled={pending}>
+      {pending ? "Uploading..." : "Upload"}
+    </Button>
+  );
+}
+
+type BannerUploaderProps = {
+  bannerUrl: string | null;
+  onUploaded: (url: string | null) => void;
+};
+
+const bannerInitialState: ActionResult<{ url: string }> | null = null;
+
+function BannerUploader({ bannerUrl, onUploaded }: BannerUploaderProps) {
+  const [state, formAction] = useActionState(uploadBannerAction, bannerInitialState);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  React.useEffect(() => {
+    if (state?.success && state.data) {
+      onUploaded(state.data.url);
+      toast.success("Banner updated");
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    }
+    if (state && !state.success) {
+      toast.error(state.errors.banner ?? "Unable to upload banner");
+    }
+  }, [state, onUploaded]);
+
+  return (
+    <form action={formAction} className="flex items-center gap-4">
+      <div className="h-16 w-full overflow-hidden rounded-xl border bg-muted sm:h-20">
+        {bannerUrl ? (
+          <img src={bannerUrl} alt="Banner" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+            No banner
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <Input ref={inputRef} name="banner" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+        <BannerSubmitButton />
+      </div>
+    </form>
+  );
+}
+
+function BannerSubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="outline" disabled={pending}>

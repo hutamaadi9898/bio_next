@@ -43,6 +43,11 @@ export function DashboardHeader({ profile, user, cardCount }: DashboardHeaderPro
           <Badge variant="destructive">Draft</Badge>
         )}
         <Badge variant="outline">Cards: {cardCount}</Badge>
+        {cardCount < 3 ? (
+          <Link href="/onboarding" className="text-primary hover:underline">
+            Quick start
+          </Link>
+        ) : null}
         <Link href={`/u/${profile.handle}`} className="text-primary hover:underline">
           View public profile
         </Link>
