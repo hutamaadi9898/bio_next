@@ -15,6 +15,8 @@ export type BentoCardType =
   | "video"
   | "music"
   | "map"
+  | "gallery"
+  | "contact"
   | "divider";
 
 export type BentoCardData = {

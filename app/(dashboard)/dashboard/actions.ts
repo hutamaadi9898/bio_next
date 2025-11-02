@@ -26,6 +26,7 @@ import { logAuditSafe } from "@/lib/audit";
 import { log } from "@/lib/log";
 import { resolveTheme } from "@/lib/themes";
 import { extractAutoPaletteFromImage } from "@/lib/themes-server";
+import { parseLatLngFromUrl } from "@/lib/maps";
 
 function normaliseColor(color?: string | null) {
   if (!color) return null;
@@ -51,7 +52,7 @@ function revalidateDashboard(_handle: string) {
 }
 
 export async function createCardAction(_prev: unknown, formData: FormData): Promise<ActionResult> {
-  const { profile } = await requireProfile();
+  const { profile, user } = await requireProfile();
 
   const parseResult = createCardSchema.safeParse({
     title: formData.get("title"),
@@ -79,6 +80,13 @@ export async function createCardAction(_prev: unknown, formData: FormData): Prom
     };
   }
 
+  if (payload.type === "map" && payload.url) {
+    const ok = parseLatLngFromUrl(payload.url);
+    if (!ok) {
+      return { success: false, errors: { url: "Could not parse location from URL" } };
+    }
+  }
+
   const positionResult = await db
     .select({ max: sql<number>`coalesce(max(${cards.position}), 0)` })
     .from(cards)
@@ -87,17 +95,58 @@ export async function createCardAction(_prev: unknown, formData: FormData): Prom
   const nextPosition = positionResult[0]?.max ?? 0;
 
   try {
-    await db.insert(cards).values({
-      profileId: profile.id,
-      type: payload.type,
-      title: payload.title,
-      subtitle: payload.subtitle,
-      url: payload.url,
-      cols: payload.cols,
-      rows: payload.rows,
-      position: nextPosition + 1,
-      accentColor: normaliseColor(payload.accentColor),
-    });
+    if (payload.type === "gallery") {
+      const filesRaw = formData.getAll("images");
+      const files = filesRaw.filter((f): f is File => f instanceof File);
+      if (files.length === 0) {
+        return { success: false, errors: { images: "Please add at least one image" } };
+      }
+      const limited = files.slice(0, 6);
+
+      const uploaded = [] as { id: string; url: string }[];
+      for (const file of limited) {
+        const up = await uploadImageToR2(user.id, file);
+        const [asset] = await db
+          .insert(assets)
+          .values({
+            userId: user.id,
+            bucket: env.R2_BUCKET_NAME,
+            key: up.key,
+            contentType: up.contentType,
+            url: up.url,
+            sizeBytes: up.sizeBytes,
+          })
+          .returning({ id: assets.id, url: assets.url });
+        if (asset) uploaded.push({ id: asset.id, url: asset.url });
+      }
+
+      await db.insert(cards).values({
+        profileId: profile.id,
+        type: payload.type,
+        title: payload.title,
+        subtitle: payload.subtitle,
+        url: null,
+        cols: Math.max(3, payload.cols),
+        rows: Math.max(2, payload.rows),
+        position: nextPosition + 1,
+        accentColor: normaliseColor(payload.accentColor),
+        data: { images: uploaded },
+      } as any);
+    } else {
+      // Contact: default to mailto if URL not provided
+      const url = payload.type === "contact" && !payload.url ? `mailto:${user.email}` : payload.url;
+      await db.insert(cards).values({
+        profileId: profile.id,
+        type: payload.type,
+        title: payload.title,
+        subtitle: payload.subtitle,
+        url,
+        cols: payload.cols,
+        rows: payload.rows,
+        position: nextPosition + 1,
+        accentColor: normaliseColor(payload.accentColor),
+      });
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("enum card_type") || message.includes("invalid input value for enum")) {
@@ -147,20 +196,76 @@ export async function updateCardAction(_prev: unknown, formData: FormData): Prom
     };
   }
 
+  if (payload.type === "map" && payload.url) {
+    const ok = parseLatLngFromUrl(payload.url);
+    if (!ok) {
+      return { success: false, errors: { url: "Could not parse location from URL" } };
+    }
+  }
   try {
-    await db
-      .update(cards)
-      .set({
-        title: payload.title,
-        subtitle: payload.subtitle,
-        type: payload.type,
-        url: payload.url,
-        cols: payload.cols,
-        rows: payload.rows,
-        accentColor: normaliseColor(payload.accentColor),
-        updatedAt: new Date(),
-      })
-      .where(and(eq(cards.id, payload.id), eq(cards.profileId, profile.id)));
+    if (payload.type === "gallery") {
+      // Merge: remove checked images, then add new uploads
+      const existing = await db.query.cards.findFirst({
+        where: (t, { and: AND, eq }) => AND(eq(t.id, payload.id), eq(t.profileId, profile.id)),
+      });
+      const currentImages: Array<{ id?: string; url?: string }> =
+        (existing?.data && typeof (existing as any).data === "object" && Array.isArray((existing as any).data.images))
+          ? ((existing as any).data.images as Array<{ id?: string; url?: string }>)
+          : [];
+
+      const removeIds = formData.getAll("removeImage").map(String).filter(Boolean);
+      const kept = currentImages.filter((img) => !img.id || !removeIds.includes(String(img.id)));
+
+      const filesRaw = formData.getAll("images");
+      const files = filesRaw.filter((f): f is File => f instanceof File).slice(0, 6);
+      const uploaded = [] as { id: string; url: string }[];
+      for (const file of files) {
+        const up = await uploadImageToR2(profile.userId, file);
+        const [asset] = await db
+          .insert(assets)
+          .values({
+            userId: profile.userId,
+            bucket: env.R2_BUCKET_NAME,
+            key: up.key,
+            contentType: up.contentType,
+            url: up.url,
+            sizeBytes: up.sizeBytes,
+          })
+          .returning({ id: assets.id, url: assets.url });
+        if (asset) uploaded.push({ id: asset.id, url: asset.url });
+      }
+
+      const nextImages = [...kept, ...uploaded];
+
+      await db
+        .update(cards)
+        .set({
+          title: payload.title,
+          subtitle: payload.subtitle,
+          type: payload.type,
+          url: null,
+          cols: Math.max(3, payload.cols),
+          rows: Math.max(2, payload.rows),
+          accentColor: normaliseColor(payload.accentColor),
+          data: { images: nextImages } as any,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(cards.id, payload.id), eq(cards.profileId, profile.id)));
+    } else {
+      await db
+        .update(cards)
+        .set({
+          title: payload.title,
+          subtitle: payload.subtitle,
+          type: payload.type,
+          url: payload.url,
+          cols: payload.cols,
+          rows: payload.rows,
+          accentColor: normaliseColor(payload.accentColor),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(cards.id, payload.id), eq(cards.profileId, profile.id)));
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("enum card_type") || message.includes("invalid input value for enum")) {

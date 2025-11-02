@@ -38,6 +38,7 @@ export function CardEditorDialog({ trigger, card }: CardEditorDialogProps) {
 
   const accentInitial = card?.accentColor ?? "#2563eb";
   const [accentColor, setAccentColor] = React.useState(accentInitial);
+  const [selectedType, setSelectedType] = React.useState<string>(card?.type ?? cardTypeValues[0]);
 
   React.useEffect(() => {
     setAccentColor(accentInitial);
@@ -76,6 +77,7 @@ export function CardEditorDialog({ trigger, card }: CardEditorDialogProps) {
                 name="type"
                 defaultValue={card?.type ?? cardTypeValues[0]}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onChange={(e) => setSelectedType(e.target.value)}
               >
                 {cardTypeValues.map((type) => (
                   <option key={type} value={type}>
@@ -104,12 +106,37 @@ export function CardEditorDialog({ trigger, card }: CardEditorDialogProps) {
             <Input id="url" name="url" defaultValue={card?.url ?? ""} placeholder="https://"
               aria-describedby="url-help" />
             <p id="url-help" className="text-xs text-muted-foreground">
-              For video/music/map, paste the public link (YouTube, Spotify, Google Maps, etc.).
+              For video/music/map, paste the public link (YouTube, Spotify, Google Maps, etc.). For contact, URL is optional.
             </p>
             {state && !state.success && state.errors.url ? (
               <p className="text-sm text-destructive">{state.errors.url}</p>
             ) : null}
           </div>
+          {selectedType === "gallery" ? (
+            <div className="space-y-2">
+              <Label htmlFor="images">Images</Label>
+              <Input id="images" name="images" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif" />
+              <p className="text-xs text-muted-foreground">Select up to 6 images. We’ll upload and create a gallery card.</p>
+              {state && !state.success && state.errors.images ? (
+                <p className="text-sm text-destructive">{state.errors.images}</p>
+              ) : null}
+              {Array.isArray((card as any)?.data?.images) && (card as any)?.data?.images?.length ? (
+                <div className="space-y-2">
+                  <Label>Existing</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {((card as any).data.images as Array<{ id?: string; url?: string }>).map((img, idx) => (
+                      <label key={(img.id ?? idx) as any} className="group relative block cursor-pointer">
+                        <img src={img.url as string} alt="Gallery image" className="h-20 w-full rounded-md object-cover" />
+                        <input type="checkbox" name="removeImage" value={img.id ?? ""} className="absolute left-1 top-1" />
+                        <span className="absolute bottom-1 left-1 rounded bg-background/70 px-1 text-[10px] opacity-80">Remove</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Tick images to remove when saving.</p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="cols">Columns</Label>

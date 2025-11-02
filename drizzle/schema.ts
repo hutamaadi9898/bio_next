@@ -21,6 +21,9 @@ export const cardTypeEnum = pgEnum("card_type", [
   "video",
   "music",
   "map",
+  // Phase 5
+  "gallery",
+  "contact",
   "divider",
 ]);
 

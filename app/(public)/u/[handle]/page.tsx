@@ -13,6 +13,8 @@ import { resolveTheme } from "@/lib/themes";
 import { extractYouTubeId, toSpotifyEmbedUrl } from "@/lib/utils";
 import { YouTubeLite } from "@/components/public/youtube-lite";
 import { SpotifyEmbed } from "@/components/public/spotify-embed";
+import { staticMapPreviewFromUrl } from "@/lib/maps";
+import { PublicContactForm } from "@/components/public/public-contact";
 import type { Card as CardRow } from "@/drizzle/schema";
 
 const getProfile = cache(async (handle: string) => {
@@ -24,6 +26,7 @@ const getProfile = cache(async (handle: string) => {
       },
       avatarAsset: true,
       bannerAsset: true,
+      user: true,
     },
   });
   return profile;
@@ -74,7 +77,7 @@ export default async function PublicProfilePage({ params }: PageParams) {
     notFound();
   }
 
-  const bentoItems = profile.cards.map((card) => mapCard(card));
+  const bentoItems = profile.cards.map((card) => mapCard(card, profile.user?.email ?? undefined));
   const resolved = resolveTheme(profile.theme);
   const accent = resolved.palette.accent ?? "#2563eb";
   const hasBanner = Boolean(profile.bannerAsset?.url);
@@ -142,7 +145,7 @@ export default async function PublicProfilePage({ params }: PageParams) {
   );
 }
 
-function mapCard(card: CardRow): BentoCardData {
+function mapCard(card: CardRow, profileEmail?: string): BentoCardData {
   const accentColor = card.accentColor ?? undefined;
   const common = {
     id: card.id,
@@ -204,10 +207,50 @@ function mapCard(card: CardRow): BentoCardData {
     }
     case "map": {
       const href = card.url ?? "#";
+      const preview = card.url ? staticMapPreviewFromUrl(card.url, 1024, 360, 13) : null;
       return {
         ...common,
         href,
-        media: <PublicCardLink cardId={card.id} href={href} label="Open map" />,
+        media: (
+          <div className="space-y-2">
+            {preview ? (
+              <img src={preview} alt="Map preview" className="w-full rounded-xl border" loading="lazy" />
+            ) : null}
+            <PublicCardLink cardId={card.id} href={href} label="Open map" />
+          </div>
+        ),
+      } as BentoCardData;
+    }
+    case "gallery": {
+      const images = Array.isArray((card as any).data?.images)
+        ? ((card as any).data.images as Array<{ url?: string }>)
+            .map((i) => (typeof i?.url === "string" ? i.url : null))
+            .filter((u): u is string => Boolean(u))
+        : [];
+      return {
+        ...common,
+        media: images.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {images.slice(0, 6).map((src, idx) => (
+              <img key={idx} src={src} alt="Gallery image" className="h-24 w-full rounded-lg object-cover sm:h-28" loading="lazy" />
+            ))}
+          </div>
+        ) : undefined,
+      } as BentoCardData;
+    }
+    case "contact": {
+      const mailto = card.url && card.url.startsWith("mailto:")
+        ? card.url
+        : profileEmail
+          ? `mailto:${profileEmail}`
+          : undefined;
+      return {
+        ...common,
+        media: mailto ? (
+          <PublicContactForm cardId={card.id} mailtoHref={mailto} />
+        ) : (
+          <p className="text-sm text-muted-foreground">Contact unavailable</p>
+        ),
       } as BentoCardData;
     }
     case "divider":

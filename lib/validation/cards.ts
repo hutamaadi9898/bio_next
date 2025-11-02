@@ -9,6 +9,9 @@ export const cardTypeValues = [
   "video",
   "music",
   "map",
+  // Phase 5
+  "gallery",
+  "contact",
   "divider",
 ] as const;
 
@@ -62,3 +65,44 @@ export type UpdateCardInput = z.infer<typeof updateCardSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ThemePreset = (typeof themePresetValues)[number];
 export type LayoutTemplate = (typeof layoutTemplateValues)[number];
+
+// Phase 5 — per-type data payloads (discriminated at usage sites)
+export const galleryDataSchema = z.object({
+  images: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        id: z.string().uuid().optional(),
+        width: z.number().int().positive().optional(),
+        height: z.number().int().positive().optional(),
+        alt: z.string().max(120).optional(),
+      }),
+    )
+    .min(1),
+});
+
+export const mapDataSchema = z
+  .object({
+    lat: z.number().finite(),
+    lng: z.number().finite(),
+    label: z.string().max(120).optional(),
+  })
+  .partial();
+
+export const contactDataSchema = z.object({
+  recipientEmail: z.string().email().optional(),
+});
+
+export function validateDataForType(type: (typeof cardTypeValues)[number], data: unknown) {
+  switch (type) {
+    case "gallery":
+      return galleryDataSchema.safeParse(data);
+    case "map":
+      return mapDataSchema.safeParse(data);
+    case "contact":
+      return contactDataSchema.safeParse(data);
+    default:
+      // Other types don't require structured data
+      return { success: true as const, data: undefined } as const;
+  }
+}
